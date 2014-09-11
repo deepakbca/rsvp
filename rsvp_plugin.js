@@ -17,7 +17,8 @@ jQuery(document).ready(function(){
 			newAttending3LastName:  "required",
 			newAttending3FirstName: "required", 
       attendeeFirstName:      "required", 
-      attendeeLastName:       "required"
+      attendeeLastName:       "required",
+      mainEmail:       "required"
 		},
 		messages: {
 			note: "<br />If you are adding additional RSVPs please enter your email address in case we have questions",
@@ -28,7 +29,8 @@ jQuery(document).ready(function(){
 			newAttending3LastName:  "<br />Please enter a last name",
 			newAttending3FirstName: "<br />Please enter a first name", 
       attendeeFirstName:      "<br />Please enter a first name", 
-      attendeeLastName:       "<br />Please enter a last name"
+      attendeeLastName:       "<br />Please enter a last name",
+      mainEmail:       "<br />Please specify a valid email address"
 		}
 	});
   
