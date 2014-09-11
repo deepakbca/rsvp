@@ -152,7 +152,7 @@ function rsvp_frontend_prompt_to_edit($attendee) {
 
 function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 	global $wpdb, $rsvp_form_action, $rsvp_saved_form_vars;
-	$attendee = $wpdb->get_row($wpdb->prepare("SELECT id, firstName, lastName, email, rsvpStatus, note, kidsMeal, additionalAttendee, veggieMeal, personalGreeting   
+	$attendee = $wpdb->get_row($wpdb->prepare("SELECT id, firstName, lastName, email, rsvpStatus, note, kidsMeal, additionalAttendee, attendingCeremony, personalGreeting   
 																						 FROM ".ATTENDEES_TABLE." 
 																						 WHERE id = %d", $attendeeID));
 	$sql = "SELECT id FROM ".ATTENDEES_TABLE." 
@@ -168,8 +168,8 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 			__("Um, unfortunately, there is a Star Trek marathon on that day that I just cannot miss.", 'rsvp-plugin'));
 	$kidsVerbiage = ((trim(get_option(OPTION_KIDS_MEAL_VERBIAGE)) != "") ? get_option(OPTION_KIDS_MEAL_VERBIAGE) : 
 					__("We have the option of getting cheese pizza for the kids (and only kids).  Do you want pizza instead of \"adult food?\"", 'rsvp-plugin'));
-	$veggieVerbiage = ((trim(get_option(OPTION_VEGGIE_MEAL_VERBIAGE)) != "") ? get_option(OPTION_VEGGIE_MEAL_VERBIAGE) : 
-					__("We also have the option of getting individual vegetarian meals instead of the fish or meat.  Would you like a vegetarian dinner?", 'rsvp-plugin'));
+	$attendingCeremonyVerbiage = ((trim(get_option(OPTION_ATTENDING_CEREMONY_VERBIAGE)) != "") ? get_option(OPTION_ATTENDING_CEREMONY_VERBIAGE) : 
+					__("We would like to see you at the ceremony if you can make it. Will you be attending the ceremony?", 'rsvp-plugin'));
 	$noteVerbiage = ((trim(get_option(OPTION_NOTE_VERBIAGE)) != "") ? get_option(OPTION_NOTE_VERBIAGE) : 
 		__("If you have any <strong style=\"color:red;\">food allergies</strong>, please indicate what they are in the &quot;notes&quot; section below.  Or, if you just want to send us a note, please feel free.  If you have any questions, please send us an email.", 'rsvp-plugin'));
     
@@ -230,13 +230,13 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
       RSVP_END_FORM_FIELD;
 	}
 	
-	if(get_option(OPTION_HIDE_VEGGIE) != "Y") {		
+	if(get_option(OPTION_HIDE_ATTENDING_CEREMONY) != "Y") {		
 		$form .= rsvp_BeginningFormField("", "rsvpBorderTop").
-      RSVP_START_PARA.$veggieVerbiage.RSVP_END_PARA.
-      "<input type=\"radio\" name=\"mainVeggieMeal\" value=\"Y\" id=\"mainVeggieMealY\" ".
-        ((($attendee->veggieMeal == "Y") || ($rsvp_saved_form_vars['mainVeggieMeal'] == "Y")) ? "checked=\"checked\"" : "")."/> <label for=\"mainVeggieMealY\">$yesText</label> ".
-      "<input type=\"radio\" name=\"mainVeggieMeal\" value=\"N\" id=\"mainVeggieMealN\" ".
-        ((($attendee->veggieMeal == "Y") || ($rsvp_saved_form_vars['mainVeggieMeal'] == "Y")) ? "" : "checked=\"checked\"")." /> <label for=\"mainVeggieMealN\">$noText</label>".
+      RSVP_START_PARA.$attendingCeremonyVerbiage.RSVP_END_PARA.
+      "<input type=\"radio\" name=\"mainAttendingCeremony\" value=\"Y\" id=\"mainAttendingCeremonyY\" ".
+        ((($attendee->attendingCeremony == "Y") || ($rsvp_saved_form_vars['mainAttendingCeremony'] == "Y")) ? "checked=\"checked\"" : "")."/> <label for=\"mainAttendingCeremonyY\">$yesText</label> ".
+      "<input type=\"radio\" name=\"mainAttendingCeremony\" value=\"N\" id=\"mainAttendingCeremonyN\" ".
+        ((($attendee->attendingCeremony == "Y") || ($rsvp_saved_form_vars['mainAttendingCeremony'] == "Y")) ? "" : "checked=\"checked\"")." /> <label for=\"mainAttendingCeremonyN\">$noText</label>".
       RSVP_END_FORM_FIELD;
 	}
   
@@ -311,14 +311,14 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
   					"<label for=\"attending".$a->id."KidsMealN\">$noText</label>".RSVP_END_FORM_FIELD;
   			}
 			
-  			if(get_option(OPTION_HIDE_VEGGIE) != "Y") {		
+  			if(get_option(OPTION_HIDE_ATTENDING_CEREMONY) != "Y") {		
   				$form .= rsvp_BeginningFormField("", "").
-                  RSVP_START_PARA.sprintf(__("Does %s need a vegetarian meal?", 'rsvp-plugin'), htmlspecialchars($a->firstName)).
+                  RSVP_START_PARA.sprintf(__("Will %s be attending the ceremony?", 'rsvp-plugin'), htmlspecialchars($a->firstName)).
                     RSVP_END_PARA."&nbsp; ".
-      						"<input type=\"radio\" name=\"attending".$a->id."VeggieMeal\" value=\"Y\" id=\"attending".$a->id."VeggieMealY\" /> ".
-      						"<label for=\"attending".$a->id."VeggieMealY\">$yesText</label> 
-      						<input type=\"radio\" name=\"attending".$a->id."VeggieMeal\" value=\"N\" id=\"attending".$a->id."VeggieMealN\" checked=\"checked\" /> ".
-      						"<label for=\"attending".$a->id."VeggieMealN\">$noText</label>".RSVP_END_FORM_FIELD;
+      						"<input type=\"radio\" name=\"attending".$a->id."AttendingCeremony\" value=\"Y\" id=\"attending".$a->id."AttendingCeremonyY\" /> ".
+      						"<label for=\"attending".$a->id."AttendingCeremonyY\">$yesText</label> 
+      						<input type=\"radio\" name=\"attending".$a->id."AttendingCeremony\" value=\"N\" id=\"attending".$a->id."AttendingCeremonyN\" checked=\"checked\" /> ".
+      						"<label for=\"attending".$a->id."AttendingCeremonyN\">$noText</label>".RSVP_END_FORM_FIELD;
   			}
 			
         if(get_option(OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD) != "Y") {
@@ -404,13 +404,13 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
                           \"</div>\" + 
 													\"</div>\" + \r\n";
 												}
-												if(get_option(OPTION_HIDE_VEGGIE) != "Y") {		
+												if(get_option(OPTION_HIDE_ATTENDING_CEREMONY) != "Y") {		
 													$form .= "\"<div class=\\\"rsvpFormField\\\">\" + \r\n
-                          \"<p>".__("Does this person need a vegetarian meal?", 'rsvp-plugin')."</p>\" + 
-														\"<input type=\\\"radio\\\" name=\\\"newAttending\" + numAdditional + \"VeggieMeal\\\" value=\\\"Y\\\" id=\\\"newAttending\" + numAdditional + \"VeggieMealY\\\" /> \" + 
-														\"<label for=\\\"newAttending\" + numAdditional + \"VeggieMealY\\\">$yesText</label> \" + 
-														\"<input type=\\\"radio\\\" name=\\\"newAttending\" + numAdditional + \"VeggieMeal\\\" value=\\\"N\\\" id=\\\"newAttending\" + numAdditional + \"VeggieMealN\\\" checked=\\\"checked\\\" /> \" + 
-														\"<label for=\\\"newAttending\" + numAdditional + \"VeggieMealN\\\">$noText</label>\" + 
+                          \"<p>".__("Will this person attend the ceremony?", 'rsvp-plugin')."</p>\" + 
+														\"<input type=\\\"radio\\\" name=\\\"newAttending\" + numAdditional + \"AttendingCeremony\\\" value=\\\"Y\\\" id=\\\"newAttending\" + numAdditional + \"AttendingCeremonyY\\\" /> \" + 
+														\"<label for=\\\"newAttending\" + numAdditional + \"AttendingCeremonyY\\\">$yesText</label> \" + 
+														\"<input type=\\\"radio\\\" name=\\\"newAttending\" + numAdditional + \"AttendingCeremony\\\" value=\\\"N\\\" id=\\\"newAttending\" + numAdditional + \"AttendingCeremonyN\\\" checked=\\\"checked\\\" /> \" + 
+														\"<label for=\\\"newAttending\" + numAdditional + \"AttendingCeremonyN\\\">$noText</label>\" + 
 													\"</div>\" + ";
 												}
 												$tmpVar = str_replace("\r\n", "", str_replace("|", "\"", addSlashes(rsvp_buildAdditionalQuestions($attendeeID, "| + numAdditional + |"))));
@@ -633,7 +633,7 @@ function rsvp_handleNewRsvp(&$output, &$text) {
 		$rsvpStatus = "Yes";
 	}
   $kidsMeal = ((isset($_POST['mainKidsMeal']) && (strToUpper($_POST['mainKidsMeal']) == "Y")) ? "Y" : "N");
-  $veggieMeal = ((isset($_POST['mainVeggieMeal']) && (strToUpper($_POST['mainVeggieMeal']) == "Y")) ? "Y" : "N");
+  $attendingCeremony = ((isset($_POST['mainAttendingCeremony']) && (strToUpper($_POST['mainAttendingCeremony']) == "Y")) ? "Y" : "N");
   $thankYouPrimary = $_POST['attendeeFirstName'];
 	$wpdb->insert(ATTENDEES_TABLE, array("rsvpDate" => date("Y-m-d"), 
                                        "firstName" => $_POST['attendeeFirstName'], 
@@ -642,7 +642,7 @@ function rsvp_handleNewRsvp(&$output, &$text) {
                                        "rsvpStatus" => $rsvpStatus, 
                                        "note" => $_POST['rsvp_note'], 
                                        "kidsMeal" => $kidsMeal, 
-                                       "veggieMeal" => $veggieMeal), 
+                                       "attendingCeremony" => $attendingCeremony), 
 																 array("%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s"));
 	rsvp_printQueryDebugInfo();									
   $attendeeID = $wpdb->insert_id;
@@ -675,7 +675,7 @@ function rsvp_handleNewRsvp(&$output, &$text) {
 							"rsvpStatus" => $rsvpStatus, 
               "email" => $_POST['attending'.$a->id."Email"], 
 							"kidsMeal" => ((strToUpper((isset($_POST['attending'.$a->id.'KidsMeal']) ? $_POST['attending'.$a->id.'KidsMeal'] : "N")) == "Y") ? "Y" : "N"), 
-							"veggieMeal" => ((strToUpper((isset($_POST['attending'.$a->id.'VeggieMeal']) ? $_POST['attending'.$a->id.'VeggieMeal'] : "N")) == "Y") ? "Y" : "N")),
+							"attendingCeremony" => ((strToUpper((isset($_POST['attending'.$a->id.'AttendingCeremony']) ? $_POST['attending'.$a->id.'AttendingCeremony'] : "N")) == "Y") ? "Y" : "N")),
 							array("id" => $a->id), 
 							array("%s", "%s", "%s", "%s", "%s"), 
 							array("%d"));
@@ -704,7 +704,7 @@ function rsvp_handleNewRsvp(&$output, &$text) {
 									"rsvpDate" => date("Y-m-d"), 
 									"rsvpStatus" => (($_POST['newAttending'.$i] == "Y") ? "Yes" : "No"), 
 									"kidsMeal" => (isset($_POST['newAttending'.$i.'KidsMeal']) ? $_POST['newAttending'.$i.'KidsMeal'] : "N"), 
-									"veggieMeal" => (isset($_POST['newAttending'.$i.'VeggieMeal']) ? $_POST['newAttending'.$i.'VeggieMeal'] : "N"), 
+									"attendingCeremony" => (isset($_POST['newAttending'.$i.'AttendingCeremony']) ? $_POST['newAttending'.$i.'AttendingCeremony'] : "N"), 
 									"additionalAttendee" => "Y"), 
 									array('%s', '%s', '%s', '%s', '%s', '%s', '%s'));
 					rsvp_printQueryDebugInfo();
@@ -726,7 +726,7 @@ function rsvp_handleNewRsvp(&$output, &$text) {
 	}
 				
 	if((get_option(OPTION_NOTIFY_ON_RSVP) == "Y") && (get_option(OPTION_NOTIFY_EMAIL) != "")) {
-		$sql = "SELECT firstName, lastName, rsvpStatus, note, kidsMeal, veggieMeal FROM ".ATTENDEES_TABLE." WHERE id= ".$attendeeID;
+		$sql = "SELECT firstName, lastName, rsvpStatus, note, kidsMeal, attendingCeremony FROM ".ATTENDEES_TABLE." WHERE id= ".$attendeeID;
 		$attendee = $wpdb->get_results($sql);
 		if(count($attendee) > 0) {
 			$body = "Hello, \r\n\r\n";
@@ -738,8 +738,8 @@ function rsvp_handleNewRsvp(&$output, &$text) {
         $body .= "Kids Meal: ".$attendee[0]->kidsMeal."\r\n";
       }
       
-      if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
-        $body .= "Vegetarian Meal: ".$attendee[0]->veggieMeal."\r\n";
+      if(get_option(OPTION_HIDE_ATTENDING_CEREMONY) != "Y") {
+        $body .= "Attending Ceremony: ".$attendee[0]->attendingCeremony."\r\n";
       }
       
       if(get_option(RSVP_OPTION_HIDE_NOTE) != "Y") {
@@ -829,7 +829,7 @@ function rsvp_handlersvp(&$output, &$text) {
 						"note" => $_POST['rsvp_note'],
             "email" => $_POST['mainEmail'],  
 						"kidsMeal" => ((isset($_POST['mainKidsMeal']) && (strToUpper($_POST['mainKidsMeal']) == "Y")) ? "Y" : "N"), 
-						"veggieMeal" => ((isset($_POST['mainVeggieMeal']) && (strToUpper($_POST['mainVeggieMeal']) == "Y")) ? "Y" : "N")), 
+						"attendingCeremony" => ((isset($_POST['mainAttendingCeremony']) && (strToUpper($_POST['mainAttendingCeremony']) == "Y")) ? "Y" : "N")), 
 																	array("id" => $attendeeID), 
 																	array("%s", "%s", "%s", "%s", "%s", "%s"), 
 																	array("%d"));
@@ -853,7 +853,7 @@ function rsvp_handlersvp(&$output, &$text) {
 								"rsvpStatus" => $rsvpStatus,
                 "email" => $_POST['attending'.$a->id."Email"], 
 								"kidsMeal" => ((strToUpper((isset($_POST['attending'.$a->id.'KidsMeal']) ? $_POST['attending'.$a->id.'KidsMeal'] : "N")) == "Y") ? "Y" : "N"), 
-								"veggieMeal" => ((strToUpper((isset($_POST['attending'.$a->id.'VeggieMeal']) ? $_POST['attending'.$a->id.'VeggieMeal'] : "N")) == "Y") ? "Y" : "N")),
+								"attendingCeremony" => ((strToUpper((isset($_POST['attending'.$a->id.'AttendingCeremony']) ? $_POST['attending'.$a->id.'AttendingCeremony'] : "N")) == "Y") ? "Y" : "N")),
 								array("id" => $a->id), 
 								array("%s", "%s", "%s", "%s", "%s"), 
 								array("%d"));
@@ -882,7 +882,7 @@ function rsvp_handlersvp(&$output, &$text) {
 										"rsvpDate" => date("Y-m-d"), 
 										"rsvpStatus" => (($_POST['newAttending'.$i] == "Y") ? "Yes" : "No"), 
 										"kidsMeal" => (isset($_POST['newAttending'.$i.'KidsMeal']) ? $_POST['newAttending'.$i.'KidsMeal'] : "N"), 
-										"veggieMeal" => (isset($_POST['newAttending'.$i.'VeggieMeal']) ? $_POST['newAttending'.$i.'VeggieMeal'] : "N"), 
+										"attendingCeremony" => (isset($_POST['newAttending'.$i.'AttendingCeremony']) ? $_POST['newAttending'.$i.'AttendingCeremony'] : "N"), 
 										"additionalAttendee" => "Y"), 
 										array('%s', '%s', '%s', '%s', '%s', '%s', '%s'));
 						rsvp_printQueryDebugInfo();
@@ -918,8 +918,8 @@ function rsvp_handlersvp(&$output, &$text) {
           $body .= "Kids Meal: ".$attendee[0]->kidsMeal."\r\n";
         }
       
-        if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
-          $body .= "Vegetarian Meal: ".$attendee[0]->veggieMeal."\r\n";
+        if(get_option(OPTION_HIDE_ATTENDING_CEREMONY) != "Y") {
+          $body .= "Attending Ceremony: ".$attendee[0]->attendingCeremony."\r\n";
         }
       
         if(get_option(RSVP_OPTION_HIDE_NOTE) != "Y") {
