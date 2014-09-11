@@ -62,6 +62,7 @@ License: GPL
   define("OPTION_RSVP_GUEST_EMAIL_CONFIRMATION", "rsvp_guest_email_confirmation");
   define("OPTION_RSVP_NUM_ADDITIONAL_GUESTS", "rsvp_num_additional_guests");
   define("OPTION_RSVP_HIDE_EMAIL_FIELD", "rsvp_hide_email_field");
+  define("OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD", "rsvp_hide_guest_email_field");
   define("OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM", "rsvp_disable_custom_from_email");
   define("OPTION_RSVP_ONLY_PASSCODE", "rsvp_only_passcode");
 	define("RSVP_DB_VERSION", "11");
@@ -332,6 +333,11 @@ License: GPL
 						<th scope="row"><label for="<?php echo OPTION_RSVP_HIDE_EMAIL_FIELD; ?>">Hide email field on rsvp form:</label></th>
 						<td align="left"><input type="checkbox" name="<?php echo OPTION_RSVP_HIDE_EMAIL_FIELD; ?>" id="<?php echo OPTION_RSVP_HIDE_EMAIL_FIELD; ?>" 
 							value="Y" <?php echo ((get_option(OPTION_RSVP_HIDE_EMAIL_FIELD) == "Y") ? " checked=\"checked\"" : ""); ?> /></td>
+					</tr>
+					<tr valign="top">
+						<th scope="row"><label for="<?php echo OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD; ?>">Hide *guest* email field on rsvp form:</label></th>
+						<td align="left"><input type="checkbox" name="<?php echo OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD; ?>" id="<?php echo OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD; ?>" 
+							value="Y" <?php echo ((get_option(OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD) == "Y") ? " checked=\"checked\"" : ""); ?> /></td>
 					</tr>
 					<tr valign="top">
 						<th scope="row"><label for="<?php echo OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM; ?>">Do not use the specified notification email as the from email<br /> (if you are not receiving email notifications try this):</label></th>
@@ -1502,6 +1508,7 @@ License: GPL
     register_setting('rsvp-option-group', OPTION_RSVP_GUEST_EMAIL_CONFIRMATION);
     register_setting('rsvp-option-group', OPTION_RSVP_NUM_ADDITIONAL_GUESTS);
     register_setting('rsvp-option-group', OPTION_RSVP_HIDE_EMAIL_FIELD);
+    register_setting('rsvp-option-group', OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD);
     register_setting('rsvp-option-group', OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM);
     register_setting('rsvp-option-group', OPTION_RSVP_ONLY_PASSCODE);
     
