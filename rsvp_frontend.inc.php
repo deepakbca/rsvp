@@ -391,7 +391,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
                         }
                        
 											  	$form .= "\"<div class=\\\"rsvpFormField\\\">\" + \r\n
-														\"<p>Will this person be attending?</p>\" + \r\n
+														\"<p>Will this person be attending the reception?</p>\" + \r\n
 														\"<input type=\\\"radio\\\" name=\\\"newAttending\" + numAdditional + \"\\\" value=\\\"Y\\\" id=\\\"newAttending\" + numAdditional + \"Y\\\" checked=\\\"checked\\\" /> \" + 
 														\"<label for=\\\"newAttending\" + numAdditional + \"Y\\\">$yesText</label> \" + 
 														\"<input type=\\\"radio\\\" name=\\\"newAttending\" + numAdditional + \"\\\" value=\\\"N\\\" id=\\\"newAttending\" + numAdditional + \"N\\\"> <label for=\\\"newAttending\" + numAdditional + \"N\\\">$noText</label>\" + 
