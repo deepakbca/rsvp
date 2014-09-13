@@ -48,6 +48,7 @@ License: GPL
   define("RSVP_OPTION_HIDE_NOTE", "rsvp_hide_note_field");
 	define("OPTION_HIDE_VEGGIE", "rsvp_hide_veggie");
 	define("OPTION_HIDE_KIDS_MEAL", "rsvp_hide_kids_meal");
+	define("OPTION_HIDE_GUEST_KIDS_MEAL", "rsvp_hide_guest_kids_meal");
 	define("OPTION_HIDE_ADD_ADDITIONAL", "rsvp_hide_add_additional");
 	define("OPTION_NOTIFY_ON_RSVP", "rsvp_notify_when_rsvp");
 	define("OPTION_NOTIFY_EMAIL", "rsvp_notify_email_address");
@@ -259,6 +260,11 @@ License: GPL
 						<th scope="row"><label for="rsvp_hide_kids_meal">Hide Kids Meal Question:</label></th>
 						<td align="left"><input type="checkbox" name="rsvp_hide_kids_meal" id="rsvp_hide_kids_meal" 
 							value="Y" <?php echo ((get_option(OPTION_HIDE_KIDS_MEAL) == "Y") ? " checked=\"checked\"" : ""); ?> /></td>
+					</tr>
+					<tr valign="top">
+						<th scope="row"><label for="rsvp_hide_guest_kids_meal">Hide *guest* Kids Meal Question:</label></th>
+						<td align="left"><input type="checkbox" name="rsvp_hide_guest_kids_meal" id="rsvp_hide_guest_kids_meal"
+							value="Y" <?php echo ((get_option(OPTION_HIDE_GUEST_KIDS_MEAL) == "Y") ? " checked=\"checked\"" : ""); ?> /></td>
 					</tr>
 					<tr valign="top">
 						<th scope="row"><label for="rsvp_veggie_meal_verbiage">RSVP Vegetarian Meal Verbiage:</label></th>
@@ -474,7 +480,7 @@ License: GPL
 									echo ((($sort == "rsvpStatus") && ($sortDirection == "desc")) ? "_selected" : ""); ?>.gif" width="11" height="9" 
 									alt="Sort Descending RSVP Status" title="Sort Descending RSVP Status" border="0"></a>
 						</th>
-						<?php if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y") {?>
+						<?php if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {?>
 						<th scope="col" id="kidsMeal" class="manage-column column-title" style="">Kids Meal<br />
 								<a href="admin.php?page=rsvp-top-level&amp;sort=kidsMeal&amp;sortDirection=asc">
 									<img src="<?php echo plugins_url(); ?>/rsvp/uparrow<?php 
@@ -545,7 +551,7 @@ License: GPL
 							</td>
               <td><?php echo htmlspecialchars(stripslashes($attendee->email)); ?></td>
 							<td><?php echo $attendee->rsvpStatus; ?></td>
-							<?php if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y") {?>
+							<?php if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDEGUEST_KIDS_MEAL) != "Y") {?>
 							<td><?php 
 								if($attendee->rsvpStatus == "NoResponse") {
 									echo "--";
@@ -639,7 +645,7 @@ License: GPL
 			$attendees = $wpdb->get_results($sql);
 			$csv = "\"Attendee\",\"Email\",\"RSVP Status\",";
 			
-			if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y") {
+			if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
 				$csv .= "\"Kids Meal\",";
 			}
 			$csv .= "\"Additional Attendee\",";
@@ -663,7 +669,7 @@ License: GPL
 			foreach($attendees as $a) {
 				$csv .= "\"".stripslashes($a->firstName." ".$a->lastName)."\",\"".stripslashes($a->email)."\",\"".($a->rsvpStatus)."\",";
 				
-				if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y") {
+				if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
 					$csv .= "\"".(($a->kidsMeal == "Y") ? "Yes" : "No")."\",";
 				}
 				
@@ -1486,6 +1492,7 @@ License: GPL
 		register_setting('rsvp-option-group', OPTION_THANKYOU);
 		register_setting('rsvp-option-group', OPTION_HIDE_VEGGIE);
 		register_setting('rsvp-option-group', OPTION_HIDE_KIDS_MEAL);
+		register_setting('rsvp-option-group', OPTION_HIDE_GUEST_KIDS_MEAL);
 		register_setting('rsvp-option-group', OPTION_NOTE_VERBIAGE);
 		register_setting('rsvp-option-group', OPTION_VEGGIE_MEAL_VERBIAGE);
 		register_setting('rsvp-option-group', OPTION_KIDS_MEAL_VERBIAGE);
