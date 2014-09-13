@@ -43,10 +43,10 @@ License: GPL
 	define("OPTION_YES_VERBIAGE", "rsvp_yes_verbiage");
 	define("OPTION_NO_VERBIAGE", "rsvp_no_verbiage");
 	define("OPTION_KIDS_MEAL_VERBIAGE", "rsvp_kids_meal_verbiage");
-	define("OPTION_ATTENDING_CEREMONY_VERBIAGE", "rsvp_attending_ceremony_verbiage");
+	define("OPTION_VEGGIE_MEAL_VERBIAGE", "rsvp_veggie_meal_verbiage");
 	define("OPTION_NOTE_VERBIAGE", "rsvp_note_verbiage");
   define("RSVP_OPTION_HIDE_NOTE", "rsvp_hide_note_field");
-	define("OPTION_HIDE_ATTENDING_CEREMONY", "rsvp_hide_attending_ceremony");
+	define("OPTION_HIDE_VEGGIE", "rsvp_hide_veggie");
 	define("OPTION_HIDE_KIDS_MEAL", "rsvp_hide_kids_meal");
 	define("OPTION_HIDE_ADD_ADDITIONAL", "rsvp_hide_add_additional");
 	define("OPTION_NOTIFY_ON_RSVP", "rsvp_notify_when_rsvp");
@@ -261,14 +261,14 @@ License: GPL
 							value="Y" <?php echo ((get_option(OPTION_HIDE_KIDS_MEAL) == "Y") ? " checked=\"checked\"" : ""); ?> /></td>
 					</tr>
 					<tr valign="top">
-						<th scope="row"><label for="rsvp_attending_ceremony_verbiage">RSVP Attending Ceremony Verbiage:</label></th>
-						<td align="left"><input type="text" name="rsvp_attending_ceremony_verbiage" id="rsvp_attending_ceremony_verbiage" 
-							value="<?php echo htmlspecialchars(get_option(OPTION_ATTENDING_CEREMONY_VERBIAGE)); ?>" size="65" /></td>
+						<th scope="row"><label for="rsvp_veggie_meal_verbiage">RSVP Vegetarian Meal Verbiage:</label></th>
+						<td align="left"><input type="text" name="rsvp_veggie_meal_verbiage" id="rsvp_veggie_meal_verbiage" 
+							value="<?php echo htmlspecialchars(get_option(OPTION_VEGGIE_MEAL_VERBIAGE)); ?>" size="65" /></td>
 					</tr>
 					<tr valign="top">
-						<th scope="row"><label for="rsvp_hide_attending_ceremony">Hide Attending Ceremony Question:</label></th>
-						<td align="left"><input type="checkbox" name="rsvp_hide_attending_ceremony" id="rsvp_hide_attending_ceremony" 
-							value="Y" <?php echo ((get_option(OPTION_HIDE_ATTENDING_CEREMONY) == "Y") ? " checked=\"checked\"" : ""); ?> /></td>
+						<th scope="row"><label for="rsvp_hide_veggie">Hide Vegetarian Meal Question:</label></th>
+						<td align="left"><input type="checkbox" name="rsvp_hide_veggie" id="rsvp_hide_veggie" 
+							value="Y" <?php echo ((get_option(OPTION_HIDE_VEGGIE) == "Y") ? " checked=\"checked\"" : ""); ?> /></td>
 					</tr>
 					<tr valign="top">
 						<th scope="row"><label for="rsvp_note_verbiage">Note Verbiage:</label></th>
@@ -378,7 +378,7 @@ License: GPL
 			}
 		}
 		
-		$sql = "SELECT id, firstName, lastName, rsvpStatus, note, kidsMeal, additionalAttendee, attendingCeremony, personalGreeting, passcode, email FROM ".ATTENDEES_TABLE;
+		$sql = "SELECT id, firstName, lastName, rsvpStatus, note, kidsMeal, additionalAttendee, veggieMeal, personalGreeting, passcode, email FROM ".ATTENDEES_TABLE;
 		$orderBy = " lastName, firstName";
 		if(isset($_GET['sort'])) {
 			if(strToLower($_GET['sort']) == "rsvpstatus") {
@@ -390,8 +390,8 @@ License: GPL
 				$orderBy = " kidsMeal ".((strtolower($_GET['sortDirection']) == "desc") ? "DESC" : "ASC") .", ".$orderBy;
 			}	else if(strToLower($_GET['sort']) == "additional") {
 				$orderBy = " additionalAttendee ".((strtolower($_GET['sortDirection']) == "desc") ? "DESC" : "ASC") .", ".$orderBy;
-			}	else if(strToLower($_GET['sort']) == "attendingceremony") {
-				$orderBy = " attendingCeremony ".((strtolower($_GET['sortDirection']) == "desc") ? "DESC" : "ASC") .", ".$orderBy;
+			}	else if(strToLower($_GET['sort']) == "vegetarian") {
+				$orderBy = " veggieMeal ".((strtolower($_GET['sortDirection']) == "desc") ? "DESC" : "ASC") .", ".$orderBy;
 			}			
 		}
 		$sql .= " ORDER BY ".$orderBy;
@@ -438,14 +438,14 @@ License: GPL
 						$noResults = $wpdb->get_results("SELECT COUNT(*) AS noCount FROM ".ATTENDEES_TABLE." WHERE rsvpStatus = 'No'");
 						$noResponseResults = $wpdb->get_results("SELECT COUNT(*) AS noResponseCount FROM ".ATTENDEES_TABLE." WHERE rsvpStatus = 'NoResponse'");
 						$kidsMeals = $wpdb->get_results("SELECT COUNT(*) AS kidsMealCount FROM ".ATTENDEES_TABLE." WHERE kidsMeal = 'Y'");
-						$attendingCeremonys = $wpdb->get_results("SELECT COUNT(*) AS attendingCeremonyCount FROM ".ATTENDEES_TABLE." WHERE attendingCeremony = 'Y'");
+						$veggieMeals = $wpdb->get_results("SELECT COUNT(*) AS veggieMealCount FROM ".ATTENDEES_TABLE." WHERE veggieMeal = 'Y'");
 					?>
 					<div class="alignright">RSVP Count -  
 						Yes: <strong><?php echo $yesResults[0]->yesCount; ?></strong> &nbsp; &nbsp;  &nbsp; &nbsp; 
 						No: <strong><?php echo $noResults[0]->noCount; ?></strong> &nbsp; &nbsp;  &nbsp; &nbsp; 
 						No Response: <strong><?php echo $noResponseResults[0]->noResponseCount; ?></strong> &nbsp; &nbsp;  &nbsp; &nbsp; 
 						Kids Meals: <strong><?php echo $kidsMeals[0]->kidsMealCount; ?></strong> &nbsp; &nbsp;  &nbsp; &nbsp; 
-						Attending Ceremony: <strong><?php echo $attendingCeremonys[0]->attendingCeremonyCount; ?></strong>
+						Veggie Meals: <strong><?php echo $veggieMeals[0]->veggieMealCount; ?></strong>
 					</div>
 					<div class="clear"></div>
 				</div>
@@ -496,16 +496,16 @@ License: GPL
 											echo ((($sort == "additional") && ($sortDirection == "desc")) ? "_selected" : ""); ?>.gif" width="11" height="9" 
 											alt="Sort Descending Additional Attendees Status" title="Sort Descending Additional Atttendees Status" border="0"></a>
 						</th>
-						<?php if(get_option(OPTION_HIDE_ATTENDING_CEREMONY) != "Y") {?>
-						<th scope="col" id="attendingCeremony" class="manage-column column-title" style="">Attending Ceremony <br />
-										<a href="admin.php?page=rsvp-top-level&amp;sort=attendingceremony&amp;sortDirection=asc">
+						<?php if(get_option(OPTION_HIDE_VEGGIE) != "Y") {?>
+						<th scope="col" id="veggieMeal" class="manage-column column-title" style="">Vegetarian <br />
+										<a href="admin.php?page=rsvp-top-level&amp;sort=vegetarian&amp;sortDirection=asc">
 											<img src="<?php echo plugins_url(); ?>/rsvp/uparrow<?php 
-												echo ((($sort == "attendingceremony") && ($sortDirection == "asc")) ? "_selected" : ""); ?>.gif" width="11" height="9" 
-												alt="Sort Ascending Attending Ceremony Status" title="Sort Ascending Attending Ceremony Status" border="0"></a> &nbsp;
-										<a href="admin.php?page=rsvp-top-level&amp;sort=attendingceremony&amp;sortDirection=desc">
+												echo ((($sort == "vegetarian") && ($sortDirection == "asc")) ? "_selected" : ""); ?>.gif" width="11" height="9" 
+												alt="Sort Ascending Vegetarian Status" title="Sort Ascending Vegetarian Status" border="0"></a> &nbsp;
+										<a href="admin.php?page=rsvp-top-level&amp;sort=vegetarian&amp;sortDirection=desc">
 											<img src="<?php echo plugins_url(); ?>/rsvp/downarrow<?php 
-												echo ((($sort == "attendingceremony") && ($sortDirection == "desc")) ? "_selected" : ""); ?>.gif" width="11" height="9" 
-												alt="Sort Descending Attending Ceremony Status" title="Sort Descending Attending Ceremony Status" border="0"></a>
+												echo ((($sort == "vegetarian") && ($sortDirection == "desc")) ? "_selected" : ""); ?>.gif" width="11" height="9" 
+												alt="Sort Descending Vegetarian Status" title="Sort Descending Vegetarian Status" border="0"></a>
 						</th>
 						<?php } ?>
 						<th scope="col" id="customMessage" class="manage-column column-title" style="">Custom Message</th>
@@ -560,12 +560,12 @@ License: GPL
 									echo (($attendee->additionalAttendee == "Y") ? "Yes" : "No"); 
 								}
 							?></td>
-							<?php if(get_option(OPTION_HIDE_ATTENDING_CEREMONY) != "Y") {?>
+							<?php if(get_option(OPTION_HIDE_VEGGIE) != "Y") {?>
 							<td><?php 
 								if($attendee->rsvpStatus == "NoResponse") {
 									echo "--";
 								} else {
-									echo (($attendee->attendingCeremony == "Y") ? "Yes" : "No"); 
+									echo (($attendee->veggieMeal == "Y") ? "Yes" : "No"); 
 								}	
 									?></td>
 							<?php } ?>
@@ -617,7 +617,7 @@ License: GPL
 	
 	function rsvp_admin_export() {
 		global $wpdb;
-			$sql = "SELECT id, firstName, lastName, email, rsvpStatus, note, kidsMeal, additionalAttendee, attendingCeremony, passcode 
+			$sql = "SELECT id, firstName, lastName, email, rsvpStatus, note, kidsMeal, additionalAttendee, veggieMeal, passcode 
 							FROM ".ATTENDEES_TABLE;
 							
 							$orderBy = " lastName, firstName";
@@ -631,8 +631,8 @@ License: GPL
 									$orderBy = " kidsMeal ".((strtolower($_POST['exportSortDirection']) == "desc") ? "DESC" : "ASC") .", ".$orderBy;
 								}	else if(strToLower($_POST['sortValue']) == "additional") {
 									$orderBy = " additionalAttendee ".((strtolower($_POST['exportSortDirection']) == "desc") ? "DESC" : "ASC") .", ".$orderBy;
-								}	else if(strToLower($_POST['sortValue']) == "attendingceremony") {
-									$orderBy = " attendingCeremony ".((strtolower($_POST['exportSortDirection']) == "desc") ? "DESC" : "ASC") .", ".$orderBy;
+								}	else if(strToLower($_POST['sortValue']) == "vegetarian") {
+									$orderBy = " veggieMeal ".((strtolower($_POST['exportSortDirection']) == "desc") ? "DESC" : "ASC") .", ".$orderBy;
 								}			
 							}
 							$sql .= " ORDER BY ".$orderBy;
@@ -644,8 +644,8 @@ License: GPL
 			}
 			$csv .= "\"Additional Attendee\",";
 			
-			if(get_option(OPTION_HIDE_ATTENDING_CEREMONY) != "Y") {
-				$csv .= "\"AttendingCeremony\",";
+			if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
+				$csv .= "\"Vegatarian\",";
 			}
       if(rsvp_require_passcode()) {
         $csv .= "\"Passcode\",";
@@ -669,8 +669,8 @@ License: GPL
 				
 				$csv .= "\"".(($a->additionalAttendee == "Y") ? "Yes" : "No")."\",";
 				
-				if(get_option(OPTION_HIDE_ATTENDING_CEREMONY) != "Y") {
-					$csv .= "\"".(($a->attendingCeremony == "Y") ? "Yes" : "No")."\",";
+				if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
+					$csv .= "\"".(($a->veggieMeal == "Y") ? "Yes" : "No")."\",";
 				}
         
         if(rsvp_require_passcode()) {
@@ -1484,10 +1484,10 @@ License: GPL
 		register_setting('rsvp-option-group', OPTION_OPENDATE);
 		register_setting('rsvp-option-group', OPTION_GREETING);
 		register_setting('rsvp-option-group', OPTION_THANKYOU);
-		register_setting('rsvp-option-group', OPTION_HIDE_ATTENDING_CEREMONY);
+		register_setting('rsvp-option-group', OPTION_HIDE_VEGGIE);
 		register_setting('rsvp-option-group', OPTION_HIDE_KIDS_MEAL);
 		register_setting('rsvp-option-group', OPTION_NOTE_VERBIAGE);
-		register_setting('rsvp-option-group', OPTION_ATTENDING_CEREMONY_VERBIAGE);
+		register_setting('rsvp-option-group', OPTION_VEGGIE_MEAL_VERBIAGE);
 		register_setting('rsvp-option-group', OPTION_KIDS_MEAL_VERBIAGE);
 		register_setting('rsvp-option-group', OPTION_YES_VERBIAGE);
 		register_setting('rsvp-option-group', OPTION_NO_VERBIAGE);
