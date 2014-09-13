@@ -255,6 +255,11 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
         "<textarea name=\"rsvp_note\" id=\"rsvp_note\" rows=\"7\" cols=\"50\">".((!empty($attendee->note)) ? $attendee->note : $rsvp_saved_form_vars['rsvp_note'])."</textarea>".RSVP_END_FORM_FIELD;
 	
   }
+
+// Block below shows "Following people have already RSVPd" ... in edit mode, we 
+// want people to be able to edit attendees as well. The query below this one 
+// is modified to always show all attendees
+/*
 	$sql = "SELECT id, firstName, lastName FROM ".ATTENDEES_TABLE." 
 	 	WHERE (id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
 			OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d) OR 
@@ -273,15 +278,15 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 		$form .= RSVP_END_PARA;
     $form .= "</div>";
 	}
-	
-	$sql = "SELECT id, firstName, lastName, email, personalGreeting FROM ".ATTENDEES_TABLE." 
+*/
+
+	$sql = "SELECT id, firstName, lastName, email, personalGreeting, rsvpStatus FROM ".ATTENDEES_TABLE." 
 	 	WHERE (id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
 			OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d) OR 
       id IN (SELECT waa1.attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." waa1 
            INNER JOIN ".ASSOCIATED_ATTENDEES_TABLE." waa2 ON waa2.attendeeID = waa1.attendeeID  OR 
                                                      waa1.associatedAttendeeID = waa2.attendeeID 
-           WHERE waa2.associatedAttendeeID = %d AND waa1.attendeeID <> %d)) 
-			 AND rsvpStatus = 'NoResponse'";
+           WHERE waa2.associatedAttendeeID = %d AND waa1.attendeeID <> %d))";
 	
 	$associations = $wpdb->get_results($wpdb->prepare($sql, $attendeeID, $attendeeID, $attendeeID, $attendeeID));
 	if(count($associations) > 0) {
@@ -290,10 +295,10 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
       if($a->id != $attendeeID) {
   			$form .= "<div class=\"rsvpAdditionalAttendee\">\r\n";
         $form .= "<div class=\"rsvpAdditionalAttendeeQuestions\">\r\n";
-  			$form .= rsvp_BeginningFormField("", "").RSVP_START_PARA.sprintf(__(" Will %s be attending?", 'rsvp-plugin'), htmlspecialchars($a->firstName." ".$a->lastName)).RSVP_END_PARA.
-                "<input type=\"radio\" name=\"attending".$a->id."\" value=\"Y\" id=\"attending".$a->id."Y\" /> ".
-                "<label for=\"attending".$a->id."Y\">$yesText</label> 
-  							<input type=\"radio\" name=\"attending".$a->id."\" value=\"N\" id=\"attending".$a->id."N\" /> ".
+                        $form .= rsvp_BeginningFormField("", "").RSVP_START_PARA.sprintf(__(" Will %s be attending?", 'rsvp-plugin'), htmlspecialchars($a->firstName." ".$a->lastName)).RSVP_END_PARA.
+                "<input type=\"radio\" name=\"attending".$a->id."\" value=\"Y\" id=\"attending".$a->id."Y\" ".(($a->rsvpStatus == "Yes") ? "checked=\"checked\"" : "")." /> ".
+                "<label for=\"attending".$a->id."Y\">$yesText</label>". 
+		"<input type=\"radio\" name=\"attending".$a->id."\" value=\"N\" id=\"attending".$a->id."N\" ".(($a->rsvpStatus == "No") ? "checked=\"checked\"" : "")." /> ".
                 "<label for=\"attending".$a->id."N\">$noText</label>".
                 RSVP_END_FORM_FIELD;
 			
@@ -838,8 +843,7 @@ function rsvp_handlersvp(&$output, &$text) {
 																				
 		$sql = "SELECT id, firstName FROM ".ATTENDEES_TABLE." 
 		 	WHERE (id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
-				OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d)) 
-				 AND rsvpStatus = 'NoResponse'";
+				OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d))";
 		$associations = $wpdb->get_results($wpdb->prepare($sql, $attendeeID, $attendeeID));
 		foreach($associations as $a) {
       if(isset($_POST['attending'.$a->id]) && (($_POST['attending'.$a->id] == "Y") || ($_POST['attending'.$a->id] == "N"))) {
