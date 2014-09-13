@@ -204,8 +204,6 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 	$form .= RSVP_END_PARA.
     rsvp_BeginningFormField("", "").
     "<input type=\"radio\" name=\"mainRsvp\" value=\"Y\" id=\"mainRsvpY\" ".((($attendee->rsvpStatus == "No") || ($rsvp_saved_form_vars['mainRsvp'] == "N")) ? "" : "checked=\"checked\"")." /> <label for=\"mainRsvpY\">".$yesVerbiage."</label>".
-    RSVP_END_FORM_FIELD.
-    rsvp_BeginningFormField("", "").
       "<input type=\"radio\" name=\"mainRsvp\" value=\"N\" id=\"mainRsvpN\" ".((($attendee->rsvpStatus == "No") || ($rsvp_saved_form_vars['mainRsvp'] == "N")) ? "checked=\"checked\"" : "")." /> ".
       "<label for=\"mainRsvpN\">".$noVerbiage."</label>".
     RSVP_END_FORM_FIELD;
@@ -239,7 +237,9 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
         ((($attendee->veggieMeal == "Y") || ($rsvp_saved_form_vars['mainVeggieMeal'] == "Y")) ? "" : "checked=\"checked\"")." /> <label for=\"mainVeggieMealN\">$noText</label>".
       RSVP_END_FORM_FIELD;
 	}
-  
+
+	$form .= rsvp_buildAdditionalQuestions($attendeeID, "main");
+
   if(get_option(OPTION_RSVP_HIDE_EMAIL_FIELD) != "Y") {
     $form .= rsvp_BeginningFormField("", "rsvpBorderTop").
       RSVP_START_PARA."<label for=\"mainEmail\">".__("Email Address", 'rsvp-plugin')."</label>".RSVP_END_PARA.
@@ -247,8 +247,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
       RSVP_END_FORM_FIELD;
   }
 	
-	$form .= rsvp_buildAdditionalQuestions($attendeeID, "main");
-	
+
 	if(get_option(RSVP_OPTION_HIDE_NOTE) != "Y") {
   	$form .= RSVP_START_PARA.$noteVerbiage.RSVP_END_PARA.
       rsvp_BeginningFormField("", "").
