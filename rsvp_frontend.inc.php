@@ -206,15 +206,6 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
       "<input type=\"radio\" name=\"mainRsvp\" value=\"N\" id=\"mainRsvpN\" ".((($attendee->rsvpStatus == "No") || ($rsvp_saved_form_vars['mainRsvp'] == "N")) ? "checked=\"checked\"" : "")." /> ".
       "<label for=\"mainRsvpN\">".$noVerbiage."</label>".
     RSVP_END_FORM_FIELD;
-/*
-    rsvp_BeginningFormField("", "").
-    "<select name=\"mainRsvp\">".
-       "<option value=\"N\" ".((($attendee->rsvpStatus == "N") || ($rsvp_saved_form_vars['mainRsvp'] == "N")) ? ">" : "selected>")."Neither</option>".
-       "<option value=\"W\" ".((($attendee->rsvpStatus == "W") || ($rsvp_saved_form_vars['mainRsvp'] == "W")) ? ">" : "selected>")."Wedding Only</option>".
-       "<option value=\"R\" ".((($attendee->rsvpStatus == "R") || ($rsvp_saved_form_vars['mainRsvp'] == "R")) ? ">" : "selected>")."Reception Only</option>".
-       "<option value=\"B\" ".((($attendee->rsvpStatus == "B") || ($rsvp_saved_form_vars['mainRsvp'] == "B")) ? ">" : "selected>")."Both</option></select>".
-    RSVP_END_FORM_FIELD;
-*/
 	if(!empty($attendee->personalGreeting)) {
 		$form .= rsvp_BeginningFormField("rsvpCustomGreeting", "").nl2br(stripslashes($attendee->personalGreeting)).RSVP_END_FORM_FIELD;
 	}
