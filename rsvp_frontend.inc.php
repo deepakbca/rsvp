@@ -451,8 +451,7 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix) {
 	$sql = "SELECT q.id, q.question, questionType FROM ".QUESTIONS_TABLE." q 
 					INNER JOIN ".QUESTION_TYPE_TABLE." qt ON qt.id = q.questionTypeID 
 					WHERE q.permissionLevel = 'public' 
-					  OR (q.permissionLevel = 'private' AND (q.id IN (SELECT questionID FROM ".QUESTION_ATTENDEES_TABLE." WHERE attendeeID = $attendeeID)) OR
-										(q.id IN (SELECT questionID FROM ".QUESTION_ATTENDEES_TABLE." qat, ".ASSOCIATED_ATTENDEES_TABLE." aat WHERE qat.attendeeID=aat.associatedAttendeeID AND aat.attendeeID = $attendeeID )))
+					  OR (q.permissionLevel = 'private' AND q.id IN (SELECT questionID FROM ".QUESTION_ATTENDEES_TABLE." WHERE attendeeID = $attendeeID))
 					ORDER BY q.sortOrder ";
   $questions = $wpdb->get_results($sql);
 	if(count($questions) > 0) {
