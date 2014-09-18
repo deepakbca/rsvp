@@ -293,7 +293,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
       if($a->id != $attendeeID) {
   			$form .= "<div class=\"rsvpAdditionalAttendee\">\r\n";
         $form .= "<div class=\"rsvpAdditionalAttendeeQuestions\">\r\n";
-                        $form .= rsvp_BeginningFormField("", "").RSVP_START_PARA.sprintf(__(" Will %s be attending the reception?", 'rsvp-plugin'), htmlspecialchars($a->firstName." ".$a->lastName)).RSVP_END_PARA.
+                        $form .= rsvp_BeginningFormField("", "").RSVP_START_PARA.sprintf(__(" Will %s be attending the ceremony?", 'rsvp-plugin'), htmlspecialchars($a->firstName." ".$a->lastName)).RSVP_END_PARA.
                 "<input type=\"radio\" name=\"attending".$a->id."\" value=\"Y\" id=\"attending".$a->id."Y\" ".(($a->rsvpStatus == "Yes") ? "checked=\"checked\"" : "")." /> ".
                 "<label for=\"attending".$a->id."Y\">$yesText</label>". 
 		"<input type=\"radio\" name=\"attending".$a->id."\" value=\"N\" id=\"attending".$a->id."N\" ".(($a->rsvpStatus == "No") ? "checked=\"checked\"" : "")." /> ".
@@ -327,7 +327,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 	if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
 				$form .= rsvp_BeginningFormField("", "").
             RSVP_START_PARA.sprintf(__("Does %s need a kids meal?", 'rsvp-plugin'), htmlspecialchars($a->firstName)).
-              RSVP_END_PARA."&nbsp; ".
+              RSVP_END_PARA.
             "<input type=\"radio\" name=\"attending".$a->id."KidsMeal\" value=\"Y\" id=\"attending".$a->id."KidsMealY\" /> ".
 					"<label for=\"attending".$a->id."KidsMealY\">$yesText</label>
 					<input type=\"radio\" name=\"attending".$a->id."KidsMeal\" value=\"N\" id=\"attending".$a->id."KidsMealN\" checked=\"checked\" /> ".
