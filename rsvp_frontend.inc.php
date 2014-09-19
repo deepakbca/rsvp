@@ -907,9 +907,9 @@ function rsvp_handlersvp(&$output, &$text) {
 				$body = "Hello, \r\n\r\n";
 							
 				$body .= stripslashes($attendee[0]->firstName)." ".stripslashes($attendee[0]->lastName).
-								 " has submitted their RSVP and has RSVP'd with '".$attendee[0]->rsvpStatus."'.";
+								 " has submitted their RSVP and has RSVP'd for the ceremony.\r\n";
 				
-        if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
+        if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y") {
           $body .= "Kids Meal: ".$attendee[0]->kidsMeal."\r\n";
         }
       
@@ -921,28 +921,50 @@ function rsvp_handlersvp(&$output, &$text) {
           $body .= "Note: ".stripslashes($attendee[0]->note)."\r\n";
         }
       
-  			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q 
+			$body .= "Attending ceremony: ".$attendee[0]->rsvpStatus."\r\n";
+
+			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q
   				LEFT JOIN ".ATTENDEE_ANSWERS." ans ON q.id = ans.questionID AND ans.attendeeID = %d 
   				ORDER BY q.sortOrder, q.id";
-  			$aRs = $wpdb->get_results($wpdb->prepare($sql, $attendeeID));
-  			if(count($aRs) > 0) {
-          $body .= "\r\n\r\n--== Custom Questions ==--\r\n";
-  				foreach($aRs as $a) {
-            $body .= stripslashes($a->question).": ".stripslashes($a->answer)."\r\n";
-  				}
-  			}
+			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $attendeeID));
+			foreach($aCQR as $aCQRa) {
+				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+			}
         
-  			$sql = "SELECT firstName, lastName, rsvpStatus FROM ".ATTENDEES_TABLE." 
+			$sql = "SELECT firstName, lastName, rsvpStatus, id FROM ".ATTENDEES_TABLE." 
   			 	WHERE id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
   					OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d)";
 		
   			$associations = $wpdb->get_results($wpdb->prepare($sql, $attendeeID, $attendeeID));
         if(count($associations) > 0) {
-          $body .= "\r\n\r\n--== Associated Attendees ==--\r\n";
-    			foreach($associations as $a) {
-            $body .= stripslashes($a->firstName." ".$a->lastName)." RSVP status: ".$a->rsvpStatus."\r\n";
-    			}
-        }
+		$body .= "\r\n\r\n---------- Guests ----------\r\n";
+		foreach($associations as $a) {
+
+			$body .= "[".stripslashes($a->firstName." ".$a->lastName)."]\r\n";
+			$body .= "Attending ceremony: ".$a->rsvpStatus."\r\n";
+
+			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q
+				LEFT JOIN ".ATTENDEE_ANSWERS." ans ON q.id = ans.questionID AND ans.attendeeID = %d 
+				ORDER BY q.sortOrder, q.id";
+
+			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
+
+			foreach($aCQR as $aCQRa) {
+				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+			}
+
+
+			$sql = "SELECT kidsMeal FROM ".ATTENDEES_TABLE." WHERE id = %d";
+			$aKMR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
+
+			foreach($aKMR as $aKMRa) {
+				$body .= "Kids Meal: ".stripslashes($aKMRa->kidsMeal)."\r\n";
+			}
+
+			$body .= "\r\n";
+		}
+	}
+
         $headers = "";
 				if(get_option(OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM) != "Y")
           $headers = 'From: '. $email . "\r\n";		
@@ -957,18 +979,48 @@ function rsvp_handlersvp(&$output, &$text) {
   		if(count($attendee) > 0) {
   			$body = "Hello ".stripslashes($attendee[0]->firstName)." ".stripslashes($attendee[0]->lastName).", \r\n\r\n";
 						
-  			$body .= "You have successfully RSVP'd with '".$attendee[0]->rsvpStatus."'.";
-      
-  			$sql = "SELECT firstName, lastName, rsvpStatus FROM ".ATTENDEES_TABLE." 
-  			 	WHERE id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
-  					OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d)";
+			$body .= "Your RSVP has been noted as follows:\r\n";
+			$body .= "Attending ceremony: ".$attendee[0]->rsvpStatus."\r\n";
+
+			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q
+				LEFT JOIN ".ATTENDEE_ANSWERS." ans ON q.id = ans.questionID AND ans.attendeeID = %d 
+				ORDER BY q.sortOrder, q.id";
+			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $attendeeID));
+			foreach($aCQR as $aCQRa) {
+				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+			}
+
+			$sql = "SELECT firstName, lastName, rsvpStatus, id FROM ".ATTENDEES_TABLE." 
+				WHERE id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
+					OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d)";
 		
-  			$associations = $wpdb->get_results($wpdb->prepare($sql, $attendeeID, $attendeeID));
+			$associations = $wpdb->get_results($wpdb->prepare($sql, $attendeeID, $attendeeID));
         if(count($associations) > 0) {
-    			foreach($associations as $a) {
-            $body .= "\r\n\r\n--== Associated Attendees ==--\r\n";
-            $body .= stripslashes($a->firstName." ".$a->lastName)." rsvp status: ".$a->rsvpStatus."\r\n";
-    			}
+		$body .= "\r\n\r\n---------- Your guests ----------\r\n";
+		foreach($associations as $a) {
+
+			$body .= "[".stripslashes($a->firstName." ".$a->lastName)."]\r\n";
+			$body .= "Attending ceremony: ".$a->rsvpStatus."\r\n";
+
+			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q 
+				LEFT JOIN ".ATTENDEE_ANSWERS." ans ON q.id = ans.questionID AND ans.attendeeID = %d 
+				ORDER BY q.sortOrder, q.id";
+
+			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
+
+			foreach($aCQR as $aCQRa) {
+				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+			}
+
+			$sql = "SELECT kidsMeal FROM ".ATTENDEES_TABLE." WHERE id = %d";
+			$aKMR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
+
+			foreach($aKMR as $aKMRa) {
+				$body .= "Kids Meal: ".stripslashes($aKMRa->kidsMeal)."\r\n";
+			}
+
+			$body .= "\r\n";
+		}
         }
         $headers = "";
         if(!empty($email) && (get_option(OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM) != "Y")) {
