@@ -200,9 +200,10 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 									$form .= __("So, how about it?", 'rsvp-plugin');
 								}
   
+        $form .= "<label for=\"mainRsvp\" class=\"error\" style=\"display:none;\"><font color=\"red\"><b>&nbsp;* Please specify if you will be able to make it to the ceremony</font></b></label>";
 	$form .= RSVP_END_PARA.
     rsvp_BeginningFormField("", "").
-    "<input type=\"radio\" name=\"mainRsvp\" value=\"Y\" id=\"mainRsvpY\" ".((($attendee->rsvpStatus == "Yes") || ($rsvp_saved_form_vars['mainRsvp'] == "Y")) ? "checked=\"checked\"" : "")." /> <label for=\"mainRsvpY\">".$yesVerbiage."</label>".
+    "<input type=\"radio\" name=\"mainRsvp\" value=\"Y\" id=\"mainRsvpY\" ".((($attendee->rsvpStatus == "Yes") || ($rsvp_saved_form_vars['mainRsvp'] == "Y")) ? "checked=\"checked\"" : "")." class=\"requied\"/> <label for=\"mainRsvpY\">".$yesVerbiage."</label>".
       "<input type=\"radio\" name=\"mainRsvp\" value=\"N\" id=\"mainRsvpN\" ".((($attendee->rsvpStatus == "No") || ($rsvp_saved_form_vars['mainRsvp'] == "N")) ? "checked=\"checked\"" : "")." /> ".
       "<label for=\"mainRsvpN\">".$noVerbiage."</label>".
     RSVP_END_FORM_FIELD;
@@ -284,7 +285,8 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
       if($a->id != $attendeeID) {
   			$form .= "<div class=\"rsvpAdditionalAttendee\">\r\n";
         $form .= "<div class=\"rsvpAdditionalAttendeeQuestions\">\r\n";
-                        $form .= rsvp_BeginningFormField("", "").RSVP_START_PARA.sprintf(__(" Will %s be attending the ceremony?", 'rsvp-plugin'), htmlspecialchars($a->firstName." ".$a->lastName)).RSVP_END_PARA.
+                        $form .= rsvp_BeginningFormField("", "").RSVP_START_PARA.sprintf(__(" Will %s be attending the ceremony?", 'rsvp-plugin'), htmlspecialchars($a->firstName." ".$a->lastName)).
+                "<label for=\"attending".$a->id."\" class=\"error\" style=\"display:none;\"><font color=\"red\"><b>&nbsp;* Please specify a response to this question</font></b></label>\r\n".RSVP_END_PARA.
                 "<input type=\"radio\" name=\"attending".$a->id."\" value=\"Y\" id=\"attending".$a->id."Y\" ".(($a->rsvpStatus == "Yes") ? "checked=\"checked\"" : "")." /> ".
                 "<label for=\"attending".$a->id."Y\">$yesText</label>". 
 		"<input type=\"radio\" name=\"attending".$a->id."\" value=\"N\" id=\"attending".$a->id."N\" ".(($a->rsvpStatus == "No") ? "checked=\"checked\"" : "")." /> ".
@@ -312,7 +314,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
             RSVP_END_FORM_FIELD;
         }
       
-			$form .= rsvp_buildAdditionalQuestions($a->id, $a->id);
+			$form .= rsvp_buildAdditionalQuestions($a->id, "a".$a->id);
 
 
 	if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
@@ -357,7 +359,8 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 									"src=\"".get_option("siteurl")."/wp-content/plugins/rsvp/plus.png\" width=\"24\" height=\"24\" border=\"0\" id=\"addRsvp\" /></div>".
 							"</div>";
 	}
-						
+
+	$form .= "<div id=\"errors\"></div>";	
 	$form .= RSVP_START_PARA."<input type=\"submit\" value=\"RSVP\" />".RSVP_END_PARA;
 	if(get_option(OPTION_HIDE_ADD_ADDITIONAL) != "Y" && $attendee->allowAdditionalAttendee == 'Y' && count($newRsvps) < $numGuests) {
 		$form .= "<script type=\"text/javascript\" language=\"javascript\">\r\n							
@@ -385,8 +388,9 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
                         }
                        
 											  	$form .= "\"<div class=\\\"rsvpFormField\\\">\" + \r\n
-														\"<p>Will this person be attending the reception?</p>\" + \r\n
-														\"<input type=\\\"radio\\\" name=\\\"newAttending\" + numAdditional + \"\\\" value=\\\"Y\\\" id=\\\"newAttending\" + numAdditional + \"Y\\\" checked=\\\"checked\\\" /> \" + 
+														\"<p>Will this person be attending the ceremony?\" + \r\n
+        													\"<label for=\\\"newAttending\" + numAdditional + \"\\\" class=\\\"error\\\" style=\\\"display:none;\\\"><font color=\\\"red\\\"><b>&nbsp;* Please specify a response to this question</font></b></label></p>\" + \r\n
+														\"<input type=\\\"radio\\\" name=\\\"newAttending\" + numAdditional + \"\\\" value=\\\"Y\\\" id=\\\"newAttending\" + numAdditional + \"Y\\\" /> \" + 
 														\"<label for=\\\"newAttending\" + numAdditional + \"Y\\\">$yesText</label> \" + 
 														\"<input type=\\\"radio\\\" name=\\\"newAttending\" + numAdditional + \"\\\" value=\\\"N\\\" id=\\\"newAttending\" + numAdditional + \"N\\\"> <label for=\\\"newAttending\" + numAdditional + \"N\\\">$noText</label>\" + 
 													\"</div>\" + \r\n";
@@ -399,7 +403,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 														\"<label for=\\\"newAttending\" + numAdditional + \"VeggieMealN\\\">$noText</label>\" + 
 													\"</div>\" + ";
 												}
-												$tmpVar = str_replace("\r\n", "", str_replace("|", "\"", addSlashes(rsvp_buildAdditionalQuestions($attendeeID, "| + numAdditional + |"))));
+												$tmpVar = str_replace("\r\n", "", str_replace("|", "\"", addSlashes(rsvp_buildAdditionalQuestions($attendeeID, "a| + numAdditional + |"))));
 												
 												$form .= "\"".$tmpVar."\" + ";
 												if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
@@ -458,9 +462,10 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix) {
 		foreach($questions as $q) {
 			$oldAnswer = rsvp_revtrievePreviousAnswer($attendeeID, $q->id);
 			
-			$output .= rsvp_BeginningFormField("", "").RSVP_START_PARA.stripslashes($q->question).RSVP_END_PARA;
+			$output .= rsvp_BeginningFormField("", "").RSVP_START_PARA.stripslashes($q->question);
 				
 				if($q->questionType == QT_MULTI) {
+					$output .= RSVP_END_PARA;
 					$oldAnswers = explode("||", $oldAnswer);
 					
 					$answers = $wpdb->get_results($wpdb->prepare("SELECT id, answer FROM ".QUESTION_ANSWERS_TABLE." WHERE questionID = %d", $q->id));
@@ -475,6 +480,7 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix) {
             $output .= "<div class=\"rsvpClear\">&nbsp;</div>\r\n";
 					}
 				} else if ($q->questionType == QT_DROP) {
+					$output .= RSVP_END_PARA;
 					//$oldAnswers = explode("||", $oldAnswer);
 					
 					$output .= "<select name=\"".$prefix."question".$q->id."\" size=\"1\">\r\n".
@@ -487,22 +493,24 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix) {
 					}
 					$output .= "</select>\r\n";
 				} else if ($q->questionType == QT_LONG) {
+					$output .= RSVP_END_PARA;
 					$output .= "<textarea name=\"".$prefix."question".$q->id."\" rows=\"5\" cols=\"35\">".htmlspecialchars($oldAnswer)."</textarea>";
 				} else if ($q->questionType == QT_RADIO) {
+        				$output .= "<label for=\"".$prefix."question".$q->id."\" class=\"error\" style=\"display:none;\"><font color=\"red\"><b>&nbsp;* Please specify a response to this question</font></b></label>\r\n".RSVP_END_PARA;
 					//$oldAnswers = explode("||", $oldAnswer);
 					$answers = $wpdb->get_results($wpdb->prepare("SELECT id, answer FROM ".QUESTION_ANSWERS_TABLE." WHERE questionID = %d", $q->id));
 					if(count($answers) > 0) {
 						$i = 0;
 						$output .= RSVP_START_PARA;
 						foreach($answers as $a) {
-							$output .= "<input type=\"radio\" name=\"".$prefix."question".$q->id."\" id=\"".$prefix."question".$q->id.$a->id."\" value=\"".$a->id."\" "
-							  .((stripslashes($a->answer) == $oldAnswer) ? " checked=\"checked\"" : "")." /> ".
-              "<label for=\"".$prefix."question".$q->id.$a->id."\">".stripslashes($a->answer)."</label>\r\n";
+							$output .= "<input type=\"radio\" name=\"".$prefix."question".$q->id."\" id=\"".$prefix."question".$q->id.$a->id."\" value=\"".$a->id."\" /> ".
+								   "<label for=\"".$prefix."question".$q->id.$a->id."\">".stripslashes($a->answer)."</label>\r\n";
 							$i++;
 						}
 						$output .= RSVP_END_PARA;
 					}
 				} else {
+					$output .= RSVP_END_PARA;
 					// normal text input
 					$output .= "<input type=\"text\" name=\"".$prefix."question".$q->id."\" value=\"".htmlspecialchars($oldAnswer)."\" size=\"25\" />";
 				}
@@ -574,7 +582,7 @@ function rsvp_find(&$output, &$text) {
 		}
 		return rsvp_handle_output($text, $output."</div>\r\n");
 	}
-				
+			
 	// We did not find anyone let's try and do a rough search
 	$attendees = null;
 	if(!$passcodeOptionEnabled) {
@@ -676,7 +684,7 @@ function rsvp_handleNewRsvp(&$output, &$text) {
 							array("%s", "%s", "%s", "%s", "%s"), 
 							array("%d"));
 			rsvp_printQueryDebugInfo();
-			rsvp_handleAdditionalQuestions($a->id, $a->id."question");
+			rsvp_handleAdditionalQuestions($a->id, "a".$a->id."question");
 		}
 	}
 				
@@ -705,7 +713,7 @@ function rsvp_handleNewRsvp(&$output, &$text) {
 									array('%s', '%s', '%s', '%s', '%s', '%s', '%s'));
 					rsvp_printQueryDebugInfo();
 					$newAid = $wpdb->insert_id;
-					rsvp_handleAdditionalQuestions($newAid, $i.'question');
+					rsvp_handleAdditionalQuestions($newAid, "a".$i.'question');
 					// Add associations for this new user
 					$wpdb->insert(ASSOCIATED_ATTENDEES_TABLE, array("attendeeID" => $newAid, 
 										"associatedAttendeeID" => $attendeeID), 
@@ -853,7 +861,7 @@ function rsvp_handlersvp(&$output, &$text) {
 								array("%s", "%s", "%s", "%s", "%s"), 
 								array("%d"));
 				rsvp_printQueryDebugInfo();
-				rsvp_handleAdditionalQuestions($a->id, $a->id."question");
+				rsvp_handleAdditionalQuestions($a->id, "a".$a->id."question");
 			}
 		}
 					
@@ -882,7 +890,7 @@ function rsvp_handlersvp(&$output, &$text) {
 										array('%s', '%s', '%s', '%s', '%s', '%s', '%s'));
 						rsvp_printQueryDebugInfo();
 						$newAid = $wpdb->insert_id;
-						rsvp_handleAdditionalQuestions($newAid, $i.'question');
+						rsvp_handleAdditionalQuestions($newAid, "a".$i.'question');
 						// Add associations for this new user
 						$wpdb->insert(ASSOCIATED_ATTENDEES_TABLE, array("attendeeID" => $newAid, 
 											"associatedAttendeeID" => $attendeeID), 
