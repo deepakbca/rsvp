@@ -151,7 +151,7 @@ function rsvp_frontend_prompt_to_edit($attendee) {
 
 function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 	global $wpdb, $rsvp_form_action, $rsvp_saved_form_vars;
-	$attendee = $wpdb->get_row($wpdb->prepare("SELECT id, firstName, lastName, email, rsvpStatus, note, kidsMeal, additionalAttendee, allowAdditionalAttendee, veggieMeal, personalGreeting
+	$attendee = $wpdb->get_row($wpdb->prepare("SELECT id, firstName, lastName, email, rsvpStatus, note, kidsMeal, additionalAttendee, maxAdditionalAttendees, veggieMeal, personalGreeting
 																						 FROM ".ATTENDEES_TABLE." 
 																						 WHERE id = %d", $attendeeID));
 	$sql = "SELECT id FROM ".ATTENDEES_TABLE." 
@@ -336,16 +336,9 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 
         // TODO: Need to move this into the main JS file but not sure how to do that with the options and the custom questions.
         //       - Moving the options would be fairly easy. Just set two JS variables in here and then go off of that.
-        //       - No clue on custom questions....
-        $numGuests = 3;
-        if(get_option(OPTION_RSVP_NUM_ADDITIONAL_GUESTS) != "") {
-          $numGuests = get_option(OPTION_RSVP_NUM_ADDITIONAL_GUESTS);
-          if(!is_numeric($numGuests) || ($numGuests < 0)) {
-            $numGuests = 3;
-          }
-        }
+        $numGuests = $attendee->maxAdditionalAttendees;
 
-	if(get_option(OPTION_HIDE_ADD_ADDITIONAL) != "Y" && $attendee->allowAdditionalAttendee == 'Y' && count($newRsvps) < $numGuests) {
+	if(get_option(OPTION_HIDE_ADD_ADDITIONAL) != "Y" && count($newRsvps) < $numGuests) {
     $text = __("Did we slip up and forget to invite someone? If so, please add him or her here:", 'rsvp-plugin');
     
     if(trim(get_option(OPTION_RSVP_ADD_ADDITIONAL_VERBIAGE)) != "") {
@@ -362,7 +355,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 
 	$form .= "<div id=\"errors\"></div>";	
 	$form .= RSVP_START_PARA."<input type=\"submit\" value=\"RSVP\" />".RSVP_END_PARA;
-	if(get_option(OPTION_HIDE_ADD_ADDITIONAL) != "Y" && $attendee->allowAdditionalAttendee == 'Y' && count($newRsvps) < $numGuests) {
+	if(get_option(OPTION_HIDE_ADD_ADDITIONAL) != "Y" && count($newRsvps) < $numGuests) {
 		$form .= "<script type=\"text/javascript\" language=\"javascript\">\r\n							
 								function handleAddRsvpClick() {
 									var numAdditional = jQuery(\"#additionalRsvp\").val();
@@ -503,8 +496,9 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix) {
 						$i = 0;
 						$output .= RSVP_START_PARA;
 						foreach($answers as $a) {
-							$output .= "<input type=\"radio\" name=\"".$prefix."question".$q->id."\" id=\"".$prefix."question".$q->id.$a->id."\" value=\"".$a->id."\" /> ".
-								   "<label for=\"".$prefix."question".$q->id.$a->id."\">".stripslashes($a->answer)."</label>\r\n";
+							$output .= "<input type=\"radio\" name=\"".$prefix."question".$q->id."\" id=\"".$prefix."question".$q->id.$a->id."\" value=\"".$a->id."\" "
+									.((stripslashes($a->answer) == $oldAnswer) ? " checked=\"checked\"" : "")." /> ".
+									"<label for=\"".$prefix."question".$q->id.$a->id."\">".stripslashes($a->answer)."</label>\r\n";
 							$i++;
 						}
 						$output .= RSVP_END_PARA;
@@ -868,13 +862,9 @@ function rsvp_handlersvp(&$output, &$text) {
 		if(get_option(OPTION_HIDE_ADD_ADDITIONAL) != "Y") {
 			if(is_numeric($_POST['additionalRsvp']) && ($_POST['additionalRsvp'] > 0)) {
 				for($i = 1; $i <= $_POST['additionalRsvp']; $i++) {
-          $numGuests = 3;
-          if(get_option(OPTION_RSVP_NUM_ADDITIONAL_GUESTS) != "") {
-            $numGuests = get_optioN(OPTION_RSVP_NUM_ADDITIONAL_GUESTS);
-            if(!is_numeric($numGuests) || ($numGuests < 0)) {
-              $numGuests = 3;
-            }
-          }
+					$numGuests = $wpdb->get_var($wpdb->prepare("SELECT maxAdditionalAttendees FROM ".ATTENDEES_TABLE." WHERE id = %d", $attendeeID));
+					echo "\r\n numGuests=".$numGuests." and i=".$i."<br/>\r\n";
+
 					if(($i <= $numGuests) && 
 					   !empty($_POST['newAttending'.$i.'FirstName']) && 
 					   !empty($_POST['newAttending'.$i.'LastName'])) {		

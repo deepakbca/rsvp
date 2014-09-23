@@ -10,7 +10,7 @@
 		`rsvpStatus` ENUM( 'Yes', 'No', 'NoResponse' ) NOT NULL DEFAULT 'NoResponse',
 		`note` TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL,
 		`kidsMeal` ENUM( 'Y', 'N' ) NOT NULL DEFAULT 'N',
-		`additionalAttendee` ENUM( 'Y', 'N' ) NOT NULL DEFAULT 'N',
+		`maxAdditionalAttendees` INT NOT NULL DEFAULT '0',
 		`allowAdditionalAttendee` ENUM( 'Y', 'N') NOT NULL DEFAULT 'N',
 		`veggieMeal` ENUM( 'Y', 'N' ) NOT NULL DEFAULT 'N', 
 		`personalGreeting` TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL 
