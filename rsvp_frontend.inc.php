@@ -396,7 +396,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 														\"<label for=\\\"newAttending\" + numAdditional + \"VeggieMealN\\\">$noText</label>\" + 
 													\"</div>\" + ";
 												}
-												$tmpVar = str_replace("\r\n", "", str_replace("|", "\"", addSlashes(rsvp_buildAdditionalQuestions($attendeeID, "a| + numAdditional + |"))));
+												$tmpVar = str_replace("\r\n", "", str_replace("|", "\"", addSlashes(rsvp_buildAdditionalQuestions($attendeeID, "aa| + numAdditional + |"))));
 												
 												$form .= "\"".$tmpVar."\" + ";
 												if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
@@ -880,7 +880,7 @@ function rsvp_handlersvp(&$output, &$text) {
 										array('%s', '%s', '%s', '%s', '%s', '%s', '%s'));
 						rsvp_printQueryDebugInfo();
 						$newAid = $wpdb->insert_id;
-						rsvp_handleAdditionalQuestions($newAid, "a".$i.'question');
+						rsvp_handleAdditionalQuestions($newAid, "aa".$i.'question');
 						// Add associations for this new user
 						$wpdb->insert(ASSOCIATED_ATTENDEES_TABLE, array("attendeeID" => $newAid, 
 											"associatedAttendeeID" => $attendeeID), 
