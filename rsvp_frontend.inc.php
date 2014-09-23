@@ -270,7 +270,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 	}
 */
 
-	$sql = "SELECT id, firstName, lastName, email, personalGreeting, rsvpStatus FROM ".ATTENDEES_TABLE." 
+	$sql = "SELECT id, firstName, lastName, email, personalGreeting, rsvpStatus, kidsMeal FROM ".ATTENDEES_TABLE." 
 	 	WHERE (id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
 			OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d) OR 
       id IN (SELECT waa1.attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." waa1 
@@ -321,9 +321,9 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 				$form .= rsvp_BeginningFormField("", "").
             RSVP_START_PARA.sprintf(__("Does %s need a kids meal?", 'rsvp-plugin'), htmlspecialchars($a->firstName)).
               RSVP_END_PARA.
-            "<input type=\"radio\" name=\"attending".$a->id."KidsMeal\" value=\"Y\" id=\"attending".$a->id."KidsMealY\" /> ".
+            "<input type=\"radio\" name=\"attending".$a->id."KidsMeal\" value=\"Y\" id=\"attending".$a->id."KidsMealY\" ".(($a->kidsMeal == "Y") ? "checked=\"checked\"" : "")."/> ".
 					"<label for=\"attending".$a->id."KidsMealY\">$yesText</label>
-					<input type=\"radio\" name=\"attending".$a->id."KidsMeal\" value=\"N\" id=\"attending".$a->id."KidsMealN\" checked=\"checked\" /> ".
+					<input type=\"radio\" name=\"attending".$a->id."KidsMeal\" value=\"N\" id=\"attending".$a->id."KidsMealN\" ".(($a->kidsMeal == "N") ? "checked=\"checked\"" : "")."/> ".
 					"<label for=\"attending".$a->id."KidsMealN\">$noText</label>".RSVP_END_FORM_FIELD;
 			}
 
