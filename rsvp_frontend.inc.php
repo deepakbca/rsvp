@@ -374,7 +374,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 									var numAdditional = jQuery(\"#additionalRsvp\").val();
 									numAdditional++;
 									if(numAdditional > ".$numGuests.") {
-										alert('".__("You have already added ".$numGuests." additional rsvp\'s you can add no more.", 'rsvp-plugin')."');
+										alert('".__("You have already added the maximum number of permitted guests (".$numGuests."). If you wish to add more, please message us via the \"Contact Us\" link.", 'rsvp-plugin')."');
 									} else {
 										jQuery(\"#additionalRsvpContainer\").append(\"<div class=\\\"rsvpAdditionalAttendee\\\">\" + \r\n
                         \"<div class=\\\"rsvpAdditionalAttendeeQuestions\\\">\" + \r\n
@@ -921,7 +921,6 @@ function rsvp_handlersvp(&$output, &$text) {
 			if(is_numeric($_POST['additionalRsvp']) && ($_POST['additionalRsvp'] > 0)) {
 				for($i = 1; $i <= $_POST['additionalRsvp']; $i++) {
 					$numGuests = $wpdb->get_var($wpdb->prepare("SELECT maxAdditionalAttendees FROM ".ATTENDEES_TABLE." WHERE id = %d", $attendeeID));
-					echo "\r\n numGuests=".$numGuests." and i=".$i."<br/>\r\n";
 
 					if(($i <= $numGuests) && 
 					   !empty($_POST['newAttending'.$i.'FirstName']) && 
