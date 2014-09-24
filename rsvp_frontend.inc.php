@@ -561,14 +561,16 @@ function rsvp_find(&$output, &$text) {
     } else {
   		$attendee = $wpdb->get_row($wpdb->prepare("SELECT id, firstName, lastName, rsvpStatus 
   																							 FROM ".ATTENDEES_TABLE." 
-  																							 WHERE firstName = %s AND lastName = %s AND passcode = %s", $firstName, $lastName, $passcode));
+																							 WHERE firstName = %s AND lastName = %s 
+																							 AND passcode = %s AND additionalAttendee <> 'Y'", $firstName, $lastName, $passcode));
     }
     
 		
 	} else {
 		$attendee = $wpdb->get_row($wpdb->prepare("SELECT id, firstName, lastName, rsvpStatus 
 																							 FROM ".ATTENDEES_TABLE." 
-																							 WHERE firstName = %s AND lastName = %s", $firstName, $lastName));
+																							 WHERE firstName = %s AND lastName = %s 
+																							 AND additionalAttendee <> 'Y'", $firstName, $lastName));
 	}
   
 	if($attendee != null) {
@@ -596,7 +598,9 @@ function rsvp_find(&$output, &$text) {
 		for($i = 3; $i >= 1; $i--) {
 			$truncFirstName = rsvp_chomp_name($firstName, $i);
 			$attendees = $wpdb->get_results("SELECT id, firstName, lastName, rsvpStatus FROM ".ATTENDEES_TABLE." 
-																			 WHERE lastName = '".mysql_real_escape_string($lastName)."' AND firstName LIKE '".mysql_real_escape_string($truncFirstName)."%'");
+																			 WHERE lastName = '".mysql_real_escape_string($lastName)."' 
+																				AND firstName LIKE '".mysql_real_escape_string($truncFirstName)."%' 
+																				AND additionalAttendee <> 'Y'");
 			if(count($attendees) > 0) {
 				$output = RSVP_START_PARA."<strong>".__("We could not find an exact match but could any of the below entries be you?", 'rsvp-plugin')."</strong>".RSVP_END_PARA;
 				foreach($attendees as $a) {
@@ -618,7 +622,7 @@ function rsvp_find(&$output, &$text) {
   if(rsvp_require_only_passcode_to_register()) {
     $notFoundText = sprintf(__(RSVP_START_PARA.'<strong>We were unable to find anyone with the password you specified.</strong>'.RSVP_END_PARA, 'rsvp-plugin'));
   } else {
-    $notFoundText = sprintf(__(RSVP_START_PARA.'<strong>We were unable to find anyone with a name of %1$s %2$s</strong>'.RSVP_END_PARA, 'rsvp-plugin'), htmlspecialchars($firstName), htmlspecialchars($lastName));
+    $notFoundText = sprintf(__(RSVP_START_PARA.'<strong>We were unable to find anyone with a name of %1$s %2$s. <br/><i>Note: If you are a guest of someone, your name will not be found</i></strong>'.RSVP_END_PARA, 'rsvp-plugin'), htmlspecialchars($firstName), htmlspecialchars($lastName));
   }
   
 	
