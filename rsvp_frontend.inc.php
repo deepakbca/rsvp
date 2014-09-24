@@ -51,6 +51,11 @@ function rsvp_frontend_handler($text) {
 				if(!empty($output)) 
 					return $output;
 				break;
+			case("sendpasscode") :
+				$output = rsvp_sendPasscode($output, $text);
+				if(!empty($output)) 
+					return $output;
+				break;
 			case("foundattendee") :
 				$output = rsvp_foundAttendee($output, $text);
 				if(!empty($output)) 
@@ -136,15 +141,28 @@ function rsvp_handleAdditionalQuestions($attendeeID, $formName) {
 
 function rsvp_frontend_prompt_to_edit($attendee) {
   global $rsvp_form_action;
-  $prompt = RSVP_START_CONTAINER; 
-  $editGreeting = __("Hi %s it looks like you have already RSVP'd. Modifications cannot be made through this site.<br/><br/> If this message is in error, or you wish to make changes, please <a href=\"".get_option(OPTION_CONTACT_US_URL)."\">click here</a>.", 'rsvp-plugin');
+  global $wpdb;
+  
+  $email = $wpdb->get_var($wpdb->prepare("SELECT email FROM ".ATTENDEES_TABLE." WHERE id = %d", $attendee->id));
+  $emailP1 = strtok($email, "@");
+  $emailP2 = strtok("@");
+  $emailP1 = substr_replace($emailP1, "****", 2, (strlen($emailP1)-4));
+  $maskedAddress = $emailP1."@".$emailP2;
+
+  $prompt = RSVP_START_CONTAINER;
+
+  $editGreeting = __("Hi %s it looks like you have already RSVP'd. To modify it you need to enter a code that was sent to ".$maskedAddress, 'rsvp-plugin');
 	$prompt .= sprintf(RSVP_START_PARA.$editGreeting.RSVP_END_PARA, 
                      htmlspecialchars(stripslashes($attendee->firstName." ".$attendee->lastName)));
 	$prompt .= "<form method=\"post\" action=\"$rsvp_form_action\">\r\n
 								<input type=\"hidden\" name=\"attendeeID\" value=\"".$attendee->id."\" />
 								<input type=\"hidden\" name=\"rsvpStep\" id=\"rsvpStep\" value=\"editattendee\" />
-								<input type=\"submit\" value=\"".__("Go Back", 'rsvp-plugin')."\" onclick=\"document.getElementById('rsvpStep').value='newsearch';\"  />
+								<p><label for=\"passcode\">Passcode:</label>
+								<input type=\"password\" name=\"passcode\" id=\"passcode\" size=\"30\" value=\"".htmlspecialchars($passcode)."\" class=\"required\" autocomplete=\"off\" />
+								<input type=\"submit\" value=\"Edit RSVP\" onclick=\"document.getElementById('rsvpStep').value='editattendee';\" /></p>
+								<input type=\"submit\" value=\"I forgot my code\" onclick=\"document.getElementById('rsvpStep').value='sendpasscode';\"  />
 							</form>\r\n";
+	$prompt .= "<br/>Alternatively, please <a href=\"".get_option(OPTION_CONTACT_US_URL)."\">click here</a> to message us directly";
   $prompt .= RSVP_END_CONTAINER;
 	return $prompt;
 }
@@ -821,16 +839,23 @@ function rsvp_handlersvp(&$output, &$text) {
 		$attendeeID = $_POST['attendeeID'];
     // Get Attendee first name
     $thankYouPrimary = $wpdb->get_var($wpdb->prepare("SELECT firstName FROM ".ATTENDEES_TABLE." WHERE id = %d", $attendeeID));
-    
-		$wpdb->update(ATTENDEES_TABLE, array("rsvpDate" => date("Y-m-d"), 
-						"rsvpStatus" => $rsvpStatus, 
+    $rsvpPasscode = $wpdb->get_var($wpdb->prepare("SELECT passcode FROM ".ATTENDEES_TABLE." WHERE id = %d", $attendeeID));
+
+		if (empty($rsvpPasscode)) {
+			$rsvpPasscode = trim(rsvp_generate_passcode());
+		}
+
+		$wpdb->update(ATTENDEES_TABLE, array("rsvpDate" => date("Y-m-d"),
+						"rsvpStatus" => $rsvpStatus,
 						"note" => $_POST['rsvp_note'],
-            "email" => $_POST['mainEmail'],  
-						"kidsMeal" => ((isset($_POST['mainKidsMeal']) && (strToUpper($_POST['mainKidsMeal']) == "Y")) ? "Y" : "N"), 
-						"veggieMeal" => ((isset($_POST['mainVeggieMeal']) && (strToUpper($_POST['mainVeggieMeal']) == "Y")) ? "Y" : "N")), 
-																	array("id" => $attendeeID), 
-																	array("%s", "%s", "%s", "%s", "%s", "%s"), 
-																	array("%d"));
+					        "email" => $_POST['mainEmail'],
+						"kidsMeal" => ((isset($_POST['mainKidsMeal']) && (strToUpper($_POST['mainKidsMeal']) == "Y")) ? "Y" : "N"),
+						"veggieMeal" => ((isset($_POST['mainVeggieMeal']) && (strToUpper($_POST['mainVeggieMeal']) == "Y")) ? "Y" : "N"),
+						"passcode" => $rsvpPasscode),
+							array("id" => $attendeeID), 
+							array("%s", "%s", "%s", "%s", "%s", "%s", "%s"), 
+							array("%d"));
+
 		rsvp_printQueryDebugInfo();									
 		rsvp_handleAdditionalQuestions($attendeeID, "mainquestion");
 																				
@@ -976,8 +1001,10 @@ function rsvp_handlersvp(&$output, &$text) {
   		$attendee = $wpdb->get_results($sql);
   		if(count($attendee) > 0) {
   			$body = "Hello ".stripslashes($attendee[0]->firstName)." ".stripslashes($attendee[0]->lastName).", \r\n\r\n";
-						
-			$body .= "Your RSVP has been noted as follows:\r\n";
+
+			$body .= "Thank you for RSVping for our big day!\r\n\r\n";
+			$body .= "Should you wish to modify your RSVP any time before November 14th 2014, you can visit ".get_option(OPTION_RSVP_LANDING_URL)." again. When prompted to enter a code for editing, use this code: ".$rsvpPasscode."\r\n\r\n\r\n";
+			$body .= "Your RSVP has noted as follows:\r\n";
 			$body .= "Attending ceremony: ".$attendee[0]->rsvpStatus."\r\n";
 
 			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q
@@ -1028,27 +1055,97 @@ function rsvp_handlersvp(&$output, &$text) {
       }
     }
 					
-		return rsvp_handle_output($text, frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated));
+		return rsvp_handle_output($text, frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated, $rsvpPasscode, $attendee[0]->email));
 	} else {
 		return rsvp_handle_output($text, rsvp_frontend_greeting());
 	}
 }
 
 function rsvp_editAttendee(&$output, &$text) {
+	global $rsvp_form_action;
 	global $wpdb;
-	
-	if(is_numeric($_POST['attendeeID']) && ($_POST['attendeeID'] > 0)) {
+
+	$passcode = "";
+	if(isset($_POST['passcode'])) {
+		$passcode = mysql_real_escape_string($_POST['passcode']);
+		$_SESSION['rsvpPasscode'] = mysql_real_escape_string($_POST['passcode']);
+	}
+
+	$attendee = null;
+	if(is_numeric($_POST['attendeeID']) && ($_POST['attendeeID'] > 0) && !empty($passcode)) {
 		// Try to find the user.
 		$attendee = $wpdb->get_row($wpdb->prepare("SELECT id, firstName, lastName, rsvpStatus 
 													FROM ".ATTENDEES_TABLE." 
-													WHERE id = %d", $_POST['attendeeID']));
-		if($attendee != null) {
+													WHERE id = %d AND passcode = %s", $_POST['attendeeID'], $passcode));
+	}
+	
+	if($attendee != null) {
 			$output .= RSVP_START_CONTAINER;
 			$output .= RSVP_START_PARA.__("Welcome back", 'rsvp-plugin')." ".htmlspecialchars($attendee->firstName." ".$attendee->lastName)."!".RSVP_END_PARA;
 			$output .= rsvp_frontend_main_form($attendee->id);
 			return rsvp_handle_output($text, $output.RSVP_END_CONTAINER);
-		}
+	} else {
+		$attendee = $wpdb->get_row($wpdb->prepare("SELECT id, firstName, lastName, rsvpStatus FROM ".ATTENDEES_TABLE." WHERE id = %d ", $_POST['attendeeID']));
+
+		$output .= RSVP_START_CONTAINER;
+    		$email = $wpdb->get_var($wpdb->prepare("SELECT email FROM ".ATTENDEES_TABLE." WHERE id = %d", $_POST['attendeeID']));
+
+		$emailP1 = strtok($email, "@");
+		$emailP2 = strtok("@");
+		$emailP1 = substr_replace($emailP1, "****", 2, (strlen($emailP1)-4));
+		$maskedAddress = $emailP1."@".$emailP2;
+
+		$output .= RSVP_START_PARA."Sorry, that passcode is incorrect. <br/><br/>Please click button below to get the code via email, or <a href=\"".get_option(OPTION_CONTACT_US_URL)."\">click here</a> to get in touch with us".RSVP_END_PARA;
+		$output .= "<form method=\"post\" action=\"$rsvp_form_action\">\r\n
+				<input type=\"hidden\" name=\"attendeeID\" value=\"".$attendee->id."\" />
+				<input type=\"hidden\" name=\"rsvpStep\" id=\"rsvpStep\" value=\"editattendee\" />
+				<input type=\"submit\" value=\"Send Passcode\" onclick=\"document.getElementById('rsvpStep').value='sendpasscode';\"  />
+			</form>\r\n";
+		return rsvp_handle_output($text, $output.RSVP_END_CONTAINER);
 	}
+
+}
+
+function rsvp_sendPasscode(&$output, &$text) {
+	global $wpdb;
+
+	if(is_numeric($_POST['attendeeID']) && ($_POST['attendeeID'] > 0)) {
+		// Try to find the user.
+		$attendee = $wpdb->get_row($wpdb->prepare("SELECT firstName, email, passcode FROM ".ATTENDEES_TABLE." WHERE id = %d", $_POST['attendeeID']));
+	}
+	
+	if($attendee != null) {
+		/* send email */
+    		$email = $attendee->email;
+
+		$body  = "Hello ".$attendee->firstName.",\r\n\r\n";
+		$body .= "Your passcode is: ".$attendee->passcode."\r\n\r\n";
+		$body .= "Please visit ".get_option(OPTION_RSVP_LANDING_URL)." to edit your RSVP.";
+
+      		$fromEmail = get_option(OPTION_NOTIFY_EMAIL);	
+		$headers = "";
+
+		if(!empty($fromEmail) && (get_option(OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM) != "Y")) {
+			$headers = 'From: '. $fromEmail . "\r\n";
+		}
+
+		wp_mail($email, "Your passcode", $body, $headers);
+
+		/* display to user */
+		$output .= RSVP_START_CONTAINER;
+
+		$emailP1 = strtok($email, "@");
+		$emailP2 = strtok("@");
+		$emailP1 = substr_replace($emailP1, "****", 2, (strlen($emailP1)-4));
+		$maskedAddress = $emailP1."@".$emailP2;
+
+		$output .= RSVP_START_PARA."Your passcode has been sent to ".$maskedAddress.RSVP_END_PARA;
+		$output .= "<form method=\"post\" action=\"$rsvp_form_action\">\r\n
+				<input type=\"submit\" value=\"Go back\" onclick=\"document.getElementById('rsvpStep').value='newsearch';\"  />
+			</form>\r\n";
+		return rsvp_handle_output($text, $output.RSVP_END_CONTAINER);
+	}
+
 }
 
 function rsvp_foundAttendee(&$output, &$text) {
@@ -1084,7 +1181,7 @@ function rsvp_foundAttendee(&$output, &$text) {
 	
 	
 
-function frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated) {
+function frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated, $rsvpPasscode, $email) {
 	$customTy = get_option(OPTION_THANKYOU);
 	if(!empty($customTy)) {
 		return nl2br($customTy);
@@ -1102,6 +1199,9 @@ function frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated) {
       }
       $tyText = rtrim(trim($tyText), ",").".";
     }
+
+	$tyText .= "<br/>If you wish to edit the rsvp in the future, please use this passcode: <b>".$rsvpPasscode."</b>. This code has also been emailed to you at ".$email."";
+
 		return RSVP_START_CONTAINER.RSVP_START_PARA.$tyText.RSVP_END_PARA.RSVP_END_CONTAINER;
 	}
 }
