@@ -1138,6 +1138,7 @@ function rsvp_editAttendee(&$output, &$text) {
 		$output .= "<form method=\"post\" action=\"$rsvp_form_action\">\r\n
 				<input type=\"hidden\" name=\"attendeeID\" value=\"".$attendee->id."\" />
 				<input type=\"hidden\" name=\"rsvpStep\" id=\"rsvpStep\" value=\"editattendee\" />
+				<input type=\"submit\" value=\"Try Again\" onclick=\"document.getElementById('rsvpStep').value='foundattendee';\"  />
 				<input type=\"submit\" value=\"Send Passcode\" onclick=\"document.getElementById('rsvpStep').value='sendpasscode';\"  />
 			</form>\r\n";
 		return rsvp_handle_output($text, $output.RSVP_END_CONTAINER);
