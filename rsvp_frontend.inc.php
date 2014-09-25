@@ -1179,7 +1179,7 @@ function rsvp_sendPasscode(&$output, &$text) {
 
 	if(is_numeric($_POST['attendeeID']) && ($_POST['attendeeID'] > 0)) {
 		// Try to find the user.
-		$attendee = $wpdb->get_row($wpdb->prepare("SELECT firstName, email, passcode FROM ".ATTENDEES_TABLE." WHERE id = %d", $_POST['attendeeID']));
+		$attendee = $wpdb->get_row($wpdb->prepare("SELECT id, firstName, email, passcode FROM ".ATTENDEES_TABLE." WHERE id = %d", $_POST['attendeeID']));
 	}
 	
 	if($attendee != null) {
@@ -1209,7 +1209,9 @@ function rsvp_sendPasscode(&$output, &$text) {
 
 		$output .= RSVP_START_PARA."Your passcode has been sent to ".$maskedAddress.RSVP_END_PARA;
 		$output .= "<form method=\"post\" action=\"$rsvp_form_action\">\r\n
-				<input type=\"submit\" value=\"Go back\" onclick=\"document.getElementById('rsvpStep').value='newsearch';\"  />
+				<input type=\"hidden\" name=\"attendeeID\" value=\"".$attendee->id."\" />
+				<input type=\"hidden\" name=\"rsvpStep\" id=\"rsvpStep\" value=\"editattendee\" />
+				<input type=\"submit\" value=\"Try Again\" onclick=\"document.getElementById('rsvpStep').value='foundattendee';\"  />
 			</form>\r\n";
 		return rsvp_handle_output($text, $output.RSVP_END_CONTAINER);
 	}
