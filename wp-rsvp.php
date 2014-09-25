@@ -66,6 +66,8 @@ License: GPL
   define("OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD", "rsvp_hide_guest_email_field");
   define("OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM", "rsvp_disable_custom_from_email");
   define("OPTION_RSVP_ONLY_PASSCODE", "rsvp_only_passcode");
+  define("OPTION_CONTACT_US_URL", "rsvp_contact_us_url");
+  define("OPTION_RSVP_LANDING_URL", "rsvp_landing_url");
 	define("RSVP_DB_VERSION", "11");
 	define("QT_SHORT", "shortAnswer");
 	define("QT_MULTI", "multipleChoice");
@@ -300,6 +302,16 @@ License: GPL
 						<td align="left">Default is: &quot;Did we slip up and forget to invite someone? If so, please add him or her here:&quot;<br />
 							<input type="text" name="<?php echo OPTION_RSVP_ADD_ADDITIONAL_VERBIAGE; ?>" id="<?php echo OPTION_RSVP_ADD_ADDITIONAL_VERBIAGE; ?>" 
 							value="<?php echo htmlspecialchars(get_option(OPTION_RSVP_ADD_ADDITIONAL_VERBIAGE)); ?>" size="65" /></td>
+					</tr>
+					<tr valign="top">
+						<th scope="row"><label for="<?php echo OPTION_CONTACT_US_URL; ?>">"Contact Us" url:</label></th>
+						<td align="left"><input type="text" name="<?php echo OPTION_CONTACT_US_URL; ?>" id="<?php echo OPTION_CONTACT_US_URL; ?>" 
+							value="<?php echo htmlspecialchars(get_option(OPTION_CONTACT_US_URL)); ?>" size="65" /></td>
+					</tr>
+					<tr valign="top">
+						<th scope="row"><label for="<?php echo OPTION_RSVP_LANDING_URL; ?>">RSVP page url:</label></th>
+						<td align="left"><input type="text" name="<?php echo OPTION_RSVP_LANDING_URL; ?>" id="<?php echo OPTION_RSVP_LANDING_URL; ?>" 
+							value="<?php echo htmlspecialchars(get_option(OPTION_RSVP_LANDING_URL)); ?>" size="65" /></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="rsvp_notify_when_rsvp">Notify When Guest RSVPs</label></th>
@@ -1518,6 +1530,8 @@ License: GPL
     register_setting('rsvp-option-group', OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD);
     register_setting('rsvp-option-group', OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM);
     register_setting('rsvp-option-group', OPTION_RSVP_ONLY_PASSCODE);
+    register_setting('rsvp-option-group', OPTION_CONTACT_US_URL);
+    register_setting('rsvp-option-group', OPTION_RSVP_LANDING_URL);
     
 		wp_register_script('jquery_table_sort', plugins_url('jquery.tablednd_0_5.js',RSVP_PLUGIN_FILE));
 		wp_register_script('jquery_ui', rsvp_getHttpProtocol()."://ajax.microsoft.com/ajax/jquery.ui/1.8.5/jquery-ui.js");

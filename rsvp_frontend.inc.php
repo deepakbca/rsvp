@@ -137,14 +137,13 @@ function rsvp_handleAdditionalQuestions($attendeeID, $formName) {
 function rsvp_frontend_prompt_to_edit($attendee) {
   global $rsvp_form_action;
   $prompt = RSVP_START_CONTAINER; 
-  $editGreeting = __("Hi %s it looks like you have already RSVP'd. Would you like to edit your reservation?", 'rsvp-plugin');
+  $editGreeting = __("Hi %s it looks like you have already RSVP'd. Modifications cannot be made through this site.<br/><br/> If this message is in error, or you wish to make changes, please <a href=\"".get_option(OPTION_CONTACT_US_URL)."\">click here</a>.", 'rsvp-plugin');
 	$prompt .= sprintf(RSVP_START_PARA.$editGreeting.RSVP_END_PARA, 
                      htmlspecialchars(stripslashes($attendee->firstName." ".$attendee->lastName)));
 	$prompt .= "<form method=\"post\" action=\"$rsvp_form_action\">\r\n
 								<input type=\"hidden\" name=\"attendeeID\" value=\"".$attendee->id."\" />
 								<input type=\"hidden\" name=\"rsvpStep\" id=\"rsvpStep\" value=\"editattendee\" />
-								<input type=\"submit\" value=\"".__("Yes", 'rsvp-plugin')."\" onclick=\"document.getElementById('rsvpStep').value='editattendee';\" />
-								<input type=\"submit\" value=\"".__("No", 'rsvp-plugin')."\" onclick=\"document.getElementById('rsvpStep').value='newsearch';\"  />
+								<input type=\"submit\" value=\"".__("Go Back", 'rsvp-plugin')."\" onclick=\"document.getElementById('rsvpStep').value='newsearch';\"  />
 							</form>\r\n";
   $prompt .= RSVP_END_CONTAINER;
 	return $prompt;
