@@ -960,26 +960,13 @@ function rsvp_handlersvp(&$output, &$text) {
     $email = get_option(OPTION_NOTIFY_EMAIL);
     
 		if((get_option(OPTION_NOTIFY_ON_RSVP) == "Y") && ($email != "")) {
-			$sql = "SELECT firstName, lastName, rsvpStatus FROM ".ATTENDEES_TABLE." WHERE id= ".$attendeeID;
+			$sql = "SELECT firstName, lastName, kidsMeal, veggieMeal, note, rsvpStatus, maxAdditionalAttendees FROM ".ATTENDEES_TABLE." WHERE id= ".$attendeeID;
 			$attendee = $wpdb->get_results($sql);
 			if(count($attendee) > 0) {
 				$body = "Hello, \r\n\r\n";
 							
-				$body .= stripslashes($attendee[0]->firstName)." ".stripslashes($attendee[0]->lastName).
-								 " has submitted their RSVP and has RSVP'd with '".$attendee[0]->rsvpStatus."'.";
+				$body .= stripslashes($attendee[0]->firstName)." ".stripslashes($attendee[0]->lastName)." has submitted their RSVP.\r\n\r\n";
 				
-        if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y") {
-          $body .= "Kids Meal: ".$attendee[0]->kidsMeal."\r\n";
-        }
-      
-        if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
-          $body .= "Vegetarian Meal: ".$attendee[0]->veggieMeal."\r\n";
-        }
-      
-        if(get_option(RSVP_OPTION_HIDE_NOTE) != "Y") {
-          $body .= "Note: ".stripslashes($attendee[0]->note)."\r\n";
-        }
-      
 			$body .= "Attending ceremony: ".$attendee[0]->rsvpStatus."\r\n";
 
 			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q
@@ -989,14 +976,31 @@ function rsvp_handlersvp(&$output, &$text) {
 			foreach($aCQR as $aCQRa) {
 				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
-        
+
 			$sql = "SELECT firstName, lastName, rsvpStatus, id FROM ".ATTENDEES_TABLE." 
   			 	WHERE id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
   					OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d)";
 		
   			$associations = $wpdb->get_results($wpdb->prepare($sql, $attendeeID, $attendeeID));
+
+			if ($attendee[0]->maxAdditionalAttendees > 0) { // if guests are allowed, show count
+				$body .= "Number of guests: ".count($associations)."\r\n";
+			}
+
+	if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y") {
+          $body .= "Kids Meal: ".$attendee[0]->kidsMeal."\r\n";
+        }
+      
+        if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
+          $body .= "Vegetarian Meal: ".$attendee[0]->veggieMeal."\r\n";
+        }
+      
+        if(get_option(RSVP_OPTION_HIDE_NOTE) != "Y") {
+          $body .= "Comments: ".stripslashes($attendee[0]->note)."\r\n";
+        }
+      
         if(count($associations) > 0) {
-		$body .= "\r\n\r\n---------- Guests ----------\r\n";
+		$body .= "\r\n---------- Guests ----------\r\n";
 		foreach($associations as $a) {
 
 			$body .= "[".stripslashes($a->firstName." ".$a->lastName)."]\r\n";
@@ -1012,43 +1016,43 @@ function rsvp_handlersvp(&$output, &$text) {
 				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
 
-
-			$sql = "SELECT kidsMeal FROM ".ATTENDEES_TABLE." WHERE id = %d";
-			$aKMR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
-
-			foreach($aKMR as $aKMRa) {
-				$body .= "Kids Meal: ".stripslashes($aKMRa->kidsMeal)."\r\n";
+			if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
+    				$kidsMeal = $wpdb->get_var($wpdb->prepare("SELECT kidsMeal FROM ".ATTENDEES_TABLE." WHERE id = %d", $a->id));
+				$body .= "Kids Meal: ".stripslashes($kidsMeal)."\r\n";
 			}
 
 			$body .= "\r\n";
 		}
-	}
+	} else if ($attendee[0]->maxAdditionalAttendees > 0) {
+		$body .= "\r\n---------- No additional guests ----------\r\n";
+	} // else nothing
 
         $headers = "";
 				if(get_option(OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM) != "Y")
           $headers = 'From: '. $email . "\r\n";		
         
-				wp_mail($email, "New RSVP Submission", $body, $headers);
+				wp_mail($email, "RSVP from ".stripslashes($attendee[0]->firstName)." ".stripslashes($attendee[0]->lastName), $body, $headers);
 			}
 		}
     
     if((get_option(OPTION_RSVP_GUEST_EMAIL_CONFIRMATION) == "Y") && !empty($_POST['mainEmail'])) {
-  		$sql = "SELECT firstName, lastName, email, rsvpStatus FROM ".ATTENDEES_TABLE." WHERE id= ".$attendeeID;
+  		$sql = "SELECT firstName, lastName, email, rsvpStatus, maxAdditionalAttendees, kidsMeal, veggieMeal, note FROM ".ATTENDEES_TABLE." WHERE id= ".$attendeeID;
   		$attendee = $wpdb->get_results($sql);
   		if(count($attendee) > 0) {
   			$body = "Hello ".stripslashes($attendee[0]->firstName)." ".stripslashes($attendee[0]->lastName).", \r\n\r\n";
 
 			$body .= "Thank you for RSVping for our big day!\r\n\r\n";
 			$body .= "Should you wish to modify your RSVP any time before November 14th 2014, you can visit ".get_option(OPTION_RSVP_LANDING_URL)." again. When prompted to enter a code for editing, use this code: ".$rsvpPasscode."\r\n\r\n\r\n";
-			$body .= "Your RSVP has noted as follows:\r\n";
-			$body .= "Attending ceremony: ".$attendee[0]->rsvpStatus."\r\n";
+
+			$rsvpNotedAs .= "Your RSVP has been noted as follows:\r\n";
+			$rsvpNotedAs .= "Attending ceremony: ".$attendee[0]->rsvpStatus."\r\n";
 
 			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q
 				LEFT JOIN ".ATTENDEE_ANSWERS." ans ON q.id = ans.questionID AND ans.attendeeID = %d 
 				ORDER BY q.sortOrder, q.id";
 			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $attendeeID));
 			foreach($aCQR as $aCQRa) {
-				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+				$rsvpNotedAs .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
 
 			$sql = "SELECT firstName, lastName, rsvpStatus, id FROM ".ATTENDEES_TABLE." 
@@ -1056,12 +1060,29 @@ function rsvp_handlersvp(&$output, &$text) {
 					OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d)";
 		
 			$associations = $wpdb->get_results($wpdb->prepare($sql, $attendeeID, $attendeeID));
+
+			if ($attendee[0]->maxAdditionalAttendees > 0) { // if guests are allowed, show count
+				$rsvpNotedAs .= "Number of guests: ".count($associations)."\r\n";
+			}
+
+			if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y") {
+				$rsvpNotedAs .= "Kids Meal: ".$attendee[0]->kidsMeal."\r\n";
+			}
+
+			if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
+				$rsvpNotedAs .= "Vegetarian Meal: ".$attendee[0]->veggieMeal."\r\n";
+			}
+
+			if(get_option(RSVP_OPTION_HIDE_NOTE) != "Y") {
+				$rsvpNotedAs .= "Comments: ".stripslashes($attendee[0]->note)."\r\n";
+			}
+
         if(count($associations) > 0) {
-		$body .= "\r\n\r\n---------- Your guests ----------\r\n";
+		$rsvpNotedAs .= "\r\n---------- Your guests ----------\r\n";
 		foreach($associations as $a) {
 
-			$body .= "[".stripslashes($a->firstName." ".$a->lastName)."]\r\n";
-			$body .= "Attending ceremony: ".$a->rsvpStatus."\r\n";
+			$rsvpNotedAs .= "[".stripslashes($a->firstName." ".$a->lastName)."]\r\n";
+			$rsvpNotedAs .= "Attending ceremony: ".$a->rsvpStatus."\r\n";
 
 			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q 
 				LEFT JOIN ".ATTENDEE_ANSWERS." ans ON q.id = ans.questionID AND ans.attendeeID = %d 
@@ -1070,27 +1091,30 @@ function rsvp_handlersvp(&$output, &$text) {
 			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
 
 			foreach($aCQR as $aCQRa) {
-				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+				$rsvpNotedAs .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
 
-			$sql = "SELECT kidsMeal FROM ".ATTENDEES_TABLE." WHERE id = %d";
-			$aKMR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
-
-			foreach($aKMR as $aKMRa) {
-				$body .= "Kids Meal: ".stripslashes($aKMRa->kidsMeal)."\r\n";
+			if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
+    				$kidsMeal = $wpdb->get_var($wpdb->prepare("SELECT kidsMeal FROM ".ATTENDEES_TABLE." WHERE id = %d", $a->id));
+				$rsvpNotedAs .= "Kids Meal: ".stripslashes($kidsMeal)."\r\n";
 			}
 
-			$body .= "\r\n";
+			$rsvpNotedAs .= "\r\n";
 		}
-						
+
+
+	} else if ($attendee[0]->maxAdditionalAttendees > 0) {
+		$rsvpNotedAs .= "\r\n---------- No additional guests ----------\r\n";
+	} // else nothing
+
         if(get_option(OPTION_RSVP_EMAIL_TEXT) != "") {
           $body .= "\r\n";
           $body .= get_option(OPTION_RSVP_EMAIL_TEXT);
           $body .= "\r\n";
         }
         
-        }
-        $headers = "";
+	$body .= $rsvpNotedAs; // append what was noted in the rsvp
+	$headers = "";
         if(!empty($email) && (get_option(OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM) != "Y")) {
           $headers = 'From: '. $email . "\r\n";		
         }
@@ -1098,7 +1122,7 @@ function rsvp_handlersvp(&$output, &$text) {
       }
     }
 					
-		return rsvp_handle_output($text, frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated, $rsvpPasscode, $attendee[0]->email));
+		return rsvp_handle_output($text, frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated, $rsvpPasscode, $attendee[0]->email, str_replace("\r\n", "<br/>", $rsvpNotedAs)));
 	} else {
 		return rsvp_handle_output($text, rsvp_frontend_greeting());
 	}
@@ -1225,7 +1249,7 @@ function rsvp_foundAttendee(&$output, &$text) {
 	
 	
 
-function frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated, $rsvpPasscode, $email) {
+function frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated, $rsvpPasscode, $email, $rsvpNotedAs) {
 	$customTy = get_option(OPTION_THANKYOU);
 	if(!empty($customTy)) {
 		return nl2br($customTy);
@@ -1244,7 +1268,8 @@ function frontend_rsvp_thankyou($thankYouPrimary, $thankYouAssociated, $rsvpPass
       $tyText = rtrim(trim($tyText), ",").".";
     }
 
-	$tyText .= "<br/>If you wish to edit the rsvp in the future, please use this passcode: <b>".$rsvpPasscode."</b>. This code has also been emailed to you at ".$email."";
+	$tyText .= "<br/><br/>".$rsvpNotedAs;
+	$tyText .= "<br/><br/>If you wish to edit the rsvp in the future, please use this passcode: <b>".$rsvpPasscode."</b>. This code has also been emailed to you at ".$email."";
 
 		return RSVP_START_CONTAINER.RSVP_START_PARA.$tyText.RSVP_END_PARA.RSVP_END_CONTAINER;
 	}
