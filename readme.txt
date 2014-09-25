@@ -1,5 +1,5 @@
 === RSVP Plugin ===
-Contributors: mdedev
+Contributors: mdedev, deepakbca
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=mikede%40mde%2ddev%2ecom&lc=US&item_name=Wordpress%20RSVP%20Plugin&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
 Tags: rsvp, reserve, wedding, guestlist
 Requires at least: 3.0
@@ -7,6 +7,37 @@ Tested up to: 4.0.0
 Stable tag: 1.9.0
 
 Easy to use rsvp plugin originally created for weddings but could be used for other events.
+
+== Custom fork notes ==
+** PLEASE DO NOT USE THIS FORK FOR PRODUCTION AS I WILL NOT BE MAINTAINING IT LONG TERM **
+
+This fork is available under GPLV2 for anyone who wants to cherry pick/modify what I have done.
+
+This is a custom fork created by me (deepakbca) to suit my highly specific needs. I am primarily a C/C++/Java developer and know little PHP/JS/etc., so there may be some bugs in my code and it is probably not pretty.
+
+I wish to thank the original developer [mdedev] for creating this amazing plug-in and once my wedding is done, I will see if I can find time to push some of my more useful generic changes back into mainline.
+
+My needs (in addition to mainline):
+1. Simple UI for those unfamiliar with computers
+2. Ability to have an attendee control all their guests, with no option for guests to make changes
+3. Custom guest count per attendee
+4. Security via passcodes (so that guest A cannot see B's RSVP). This while NOT requiring an initial passcode
+   4a. New Registration is not an option here due to #3 as guest count needed to be controlled
+5. Full summary emails for guest and administrator
+6. Full summary shown to guest upon RSVP
+7. Ability to remind guests of forgotten passcodes
+
+Main changes in this fork:
+- Email field is mandatory
+- Added option to hide email field for guests
+- Always allow editing for guests (this was also done in mainline for 1.9.0 and merged in)
+- Moved main rsvp to single line, same as additional questions
+- Custom guest count, with add button only being shown initially if attendee is in a position to add more
+- Make private questions visible to associated attendees (this is no longer used/tested as we ended up inviting everyone to the ceremony)
+- Disable kids meal option for main attendee as invites would only go to adults and added option for guest kids meal
+- Better email summary and a summary after RSVP
+- Passcode reminder facility, along with display of masked email address for security
+- Disabled guest modification of RSVPs
 
 == Description ==
 
