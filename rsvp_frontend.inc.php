@@ -252,7 +252,9 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
   if(get_option(OPTION_RSVP_HIDE_EMAIL_FIELD) != "Y") {
     $form .= rsvp_BeginningFormField("", "rsvpBorderTop").
       RSVP_START_PARA."<label for=\"mainEmail\">".__("Email Address", 'rsvp-plugin')."</label>".RSVP_END_PARA.
-        "<input type=\"email\" name=\"mainEmail\" id=\"mainEmail\" value=\"".htmlspecialchars($attendee->email)."\" />".
+        "<input type=\"email\" name=\"mainEmail\" id=\"mainEmail\" value=\"".htmlspecialchars($attendee->email)."\" /><br/>".
+        "<input type=\"checkbox\" name=\"emailiCal\" id=\"emailiCal\" value=\"Yes\" style=\"margin-left:0px\"/>".
+        "<label for=\"emailiCal\">Email calendar invite [Separate message for each of ceremony/reception that you will be attending]</label>".
       RSVP_END_FORM_FIELD;
   }
 	
@@ -1038,7 +1040,7 @@ function rsvp_handlersvp(&$output, &$text) {
     if((get_option(OPTION_RSVP_GUEST_EMAIL_CONFIRMATION) == "Y") && !empty($_POST['mainEmail'])) {
   		$sql = "SELECT firstName, lastName, email, rsvpStatus, maxAdditionalAttendees, kidsMeal, veggieMeal, note FROM ".ATTENDEES_TABLE." WHERE id= ".$attendeeID;
   		$attendee = $wpdb->get_results($sql);
-  		if(count($attendee) > 0) {
+		if(count($attendee) > 0) {
   			$body = "Hello ".stripslashes($attendee[0]->firstName)." ".stripslashes($attendee[0]->lastName).", \r\n\r\n";
 
 			$body .= "Thank you for RSVping for our big day!\r\n\r\n";
@@ -1047,11 +1049,14 @@ function rsvp_handlersvp(&$output, &$text) {
 			$rsvpNotedAs .= "Your RSVP has been noted as follows:\r\n";
 			$rsvpNotedAs .= "Attending ceremony: ".$attendee[0]->rsvpStatus."\r\n";
 
-			$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q
+			$sql = "SELECT questionID, question, answer FROM ".QUESTIONS_TABLE." q
 				LEFT JOIN ".ATTENDEE_ANSWERS." ans ON q.id = ans.questionID AND ans.attendeeID = %d 
 				ORDER BY q.sortOrder, q.id";
 			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $attendeeID));
+			$attendingReception = false;
 			foreach($aCQR as $aCQRa) {
+				if ($aCQRa->questionID == 1 && $aCQRa->answer == "Yes")
+					$attendingReception = true;
 				$rsvpNotedAs .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
 
@@ -1114,11 +1119,24 @@ function rsvp_handlersvp(&$output, &$text) {
         }
         
 	$body .= $rsvpNotedAs; // append what was noted in the rsvp
+
 	$headers = "";
         if(!empty($email) && (get_option(OPTION_RSVP_DISABLE_CUSTOM_EMAIL_FROM) != "Y")) {
           $headers = 'From: '. $email . "\r\n";		
         }
-        wp_mail($attendee[0]->email, "RSVP Confirmation", $body, $headers);
+
+	if ((isset($_POST['emailiCal']) && $_POST['emailiCal'] == 'Yes')) {
+
+		if ($attendee[0]->rsvpStatus == "Yes") { // attending ceremony
+			emailiCal($headers, $attendee[0]->email, "c");
+		}
+
+		if ($attendingReception) { // attending reception
+			emailiCal($headers, $attendee[0]->email, "r");
+		}
+	}
+
+	wp_mail($attendee[0]->email, "RSVP Confirmation", $body, $headers);
       }
     }
 					
@@ -1126,6 +1144,51 @@ function rsvp_handlersvp(&$output, &$text) {
 	} else {
 		return rsvp_handle_output($text, rsvp_frontend_greeting());
 	}
+}
+
+function emailiCal($headers, $to, $inviteType) {
+
+	if ($inviteType != "c" && $inviteType != "r")
+		return; // cowardly return rather than spam garbage
+
+	$subject = "";
+	$file = "";
+	$body = "";
+
+	$mime_boundary = "----invite----".md5(time());
+
+	$headers .= "MIME-Version: 1.0\n";
+	$headers .= "Content-Type: multipart/alternative; boundary=\"$mime_boundary\"\n";
+	$headers .= "Content-class: urn:content-classes:calendarmessage\n";
+
+	$body = "--$mime_boundary\n"; // start body with mime boundary
+	$body .= "Content-Type: text/plain; charset=UTF-8\n";
+	$body .= "Content-Transfer-Encoding: 8bit\n\n";
+	$body .= "As requested, here is the invite for our wedding day event\r\n";
+	$body .= "--$mime_boundary\n"; // end mime boundary
+
+	if ($inviteType == "c") {
+		$subject = "Calendar invite for our wedding ceremony";
+		$file = "wp-content/plugins/rsvp/ceremony.ics";
+		$body .= "Content-Type: text/calendar;name=\"ceremony.ics\";method=REQUEST;charset=utf-8\n";
+		$body .= "Content-Type: text/calendar;name=\"ceremony.ics\";method=REQUEST\n";
+		$body .= "Content-Transfer-Encoding: 8bit\n\n";
+	} else {
+		$subject = "Calendar invite for our wedding reception";
+		$file = "wp-content/plugins/rsvp/reception.ics";
+		$body .= "Content-Type: text/calendar;name=\"reception.ics\";method=REQUEST;charset=utf-8\n";
+		$body .= "Content-Type: text/calendar;name=\"reception.ics\";method=REQUEST\n";
+		$body .= "Content-Transfer-Encoding: 8bit\n\n";
+	}
+
+	// Read the ceremony ics file
+	$fh = fopen($file,'r');
+	while ($line = fgets($fh)) {
+		$body .= $line;
+	}
+	fclose($fh);
+
+	wp_mail($to, $subject, $body, $headers);
 }
 
 function rsvp_editAttendee(&$output, &$text) {
