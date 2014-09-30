@@ -1044,7 +1044,8 @@ function rsvp_handlersvp(&$output, &$text) {
   			$body = "Hello ".stripslashes($attendee[0]->firstName)." ".stripslashes($attendee[0]->lastName).", \r\n\r\n";
 
 			$body .= "Thank you for RSVping for our big day!\r\n\r\n";
-			$body .= "Should you wish to modify your RSVP any time before November 14th 2014, you can visit ".get_option(OPTION_RSVP_LANDING_URL)." again. When prompted to enter a code for editing, use this code: ".$rsvpPasscode."\r\n\r\n\r\n";
+			$body .= "Should you wish to modify your RSVP any time before November 14th 2014, you can visit ".get_option(OPTION_RSVP_LANDING_URL)." again. When prompted to enter a code for editing, use this code: ".$rsvpPasscode."\r\n\r\n";
+			$body .= "To view the time and location, or to get directions, or to add this event to your calendar, please visit ".get_option(OPTION_TIME_AND_LOC_URL).".\r\n\r\n\r\n";
 
 			$rsvpNotedAs .= "Your RSVP has been noted as follows:\r\n";
 			$rsvpNotedAs .= "Attending ceremony: ".$attendee[0]->rsvpStatus."\r\n";

@@ -69,6 +69,7 @@ License: GPL
   define("OPTION_RSVP_EMAIL_TEXT", "rsvp_email_text");
   define("OPTION_CONTACT_US_URL", "rsvp_contact_us_url");
   define("OPTION_RSVP_LANDING_URL", "rsvp_landing_url");
+  define("OPTION_TIME_AND_LOC_URL", "time_and_loc_url");
 	define("RSVP_DB_VERSION", "11");
 	define("QT_SHORT", "shortAnswer");
 	define("QT_MULTI", "multipleChoice");
@@ -317,6 +318,11 @@ License: GPL
 						<th scope="row"><label for="<?php echo OPTION_RSVP_LANDING_URL; ?>">RSVP page url:</label></th>
 						<td align="left"><input type="text" name="<?php echo OPTION_RSVP_LANDING_URL; ?>" id="<?php echo OPTION_RSVP_LANDING_URL; ?>" 
 							value="<?php echo htmlspecialchars(get_option(OPTION_RSVP_LANDING_URL)); ?>" size="65" /></td>
+					</tr>
+					<tr valign="top">
+						<th scope="row"><label for="<?php echo OPTION_TIME_AND_LOC_URL; ?>">Time and location page url:</label></th>
+						<td align="left"><input type="text" name="<?php echo OPTION_TIME_AND_LOC_URL; ?>" id="<?php echo OPTION_TIME_AND_LOC_URL; ?>" 
+							value="<?php echo htmlspecialchars(get_option(OPTION_TIME_AND_LOC_URL)); ?>" size="65" /></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="rsvp_notify_when_rsvp">Notify When Guest RSVPs</label></th>
@@ -1538,6 +1544,7 @@ License: GPL
     register_setting('rsvp-option-group', OPTION_RSVP_EMAIL_TEXT);
     register_setting('rsvp-option-group', OPTION_CONTACT_US_URL);
     register_setting('rsvp-option-group', OPTION_RSVP_LANDING_URL);
+    register_setting('rsvp-option-group', OPTION_TIME_AND_LOC_URL);
     
 		wp_register_script('jquery_table_sort', plugins_url('jquery.tablednd_0_5.js',RSVP_PLUGIN_FILE));
 		wp_register_script('jquery_ui', rsvp_getHttpProtocol()."://ajax.microsoft.com/ajax/jquery.ui/1.8.5/jquery-ui.js");
