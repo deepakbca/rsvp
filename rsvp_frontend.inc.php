@@ -253,8 +253,8 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
     $form .= rsvp_BeginningFormField("", "rsvpBorderTop").
       RSVP_START_PARA."<label for=\"mainEmail\">".__("Email Address", 'rsvp-plugin')."</label>".RSVP_END_PARA.
         "<input type=\"email\" name=\"mainEmail\" id=\"mainEmail\" value=\"".htmlspecialchars($attendee->email)."\" /><br/>".
-        "<input type=\"checkbox\" name=\"emailiCal\" id=\"emailiCal\" value=\"Yes\" style=\"margin-left:0px\"/>".
-        "<label for=\"emailiCal\">Email calendar invite [Separate message for each of ceremony/reception that you will be attending]</label>".
+//        "<input type=\"checkbox\" name=\"emailiCal\" id=\"emailiCal\" value=\"Yes\" style=\"margin-left:0px\"/>".
+//        "<label for=\"emailiCal\">Email calendar invite [Separate message for each of ceremony/reception that you will be attending]</label>".
       RSVP_END_FORM_FIELD;
   }
 	
