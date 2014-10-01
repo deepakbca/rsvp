@@ -52,7 +52,8 @@
 		`question` MEDIUMTEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ,
 		`questionTypeID` INT NOT NULL, 
 		`sortOrder` INT NOT NULL DEFAULT '99', 
-		`permissionLevel` ENUM( 'public', 'private' ) NOT NULL DEFAULT 'public'
+		`permissionLevel` ENUM( 'public', 'private' ) NOT NULL DEFAULT 'public',
+		`guestOnly` ENUM( 'Y', 'N' ) NOT NULL DEFAULT 'N'
 		);";
 		$wpdb->query($sql);
 	}

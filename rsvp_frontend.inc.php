@@ -247,7 +247,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
       RSVP_END_FORM_FIELD;
 	}
 
-	$form .= rsvp_buildAdditionalQuestions($attendeeID, "main");
+	$form .= rsvp_buildAdditionalQuestions($attendeeID, "main", "attendee");
 
   if(get_option(OPTION_RSVP_HIDE_EMAIL_FIELD) != "Y") {
     $form .= rsvp_BeginningFormField("", "rsvpBorderTop").
@@ -329,7 +329,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
             RSVP_END_FORM_FIELD;
         }
       
-			$form .= rsvp_buildAdditionalQuestions($a->id, "a".$a->id);
+			$form .= rsvp_buildAdditionalQuestions($a->id, "a".$a->id, "guest");
 
 
 	if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
@@ -411,7 +411,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 														\"<label for=\\\"newAttending\" + numAdditional + \"VeggieMealN\\\">$noText</label>\" + 
 													\"</div>\" + ";
 												}
-												$tmpVar = str_replace("\r\n", "", str_replace("|", "\"", addSlashes(rsvp_buildAdditionalQuestions($attendeeID, "aa| + numAdditional + |"))));
+												$tmpVar = str_replace("\r\n", "", str_replace("|", "\"", addSlashes(rsvp_buildAdditionalQuestions($attendeeID, "aa| + numAdditional + |", "guest"))));
 												
 												$form .= "\"".$tmpVar."\" + ";
 												if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
@@ -456,11 +456,11 @@ function rsvp_revtrievePreviousAnswer($attendeeID, $questionID) {
 	return $answers;
 }
 
-function rsvp_buildAdditionalQuestions($attendeeID, $prefix) {
+function rsvp_buildAdditionalQuestions($attendeeID, $prefix, $attendeeType) {
 	global $wpdb, $rsvp_saved_form_vars;
 	$output = "<div class=\"rsvpCustomQuestions\">";
 	
-	$sql = "SELECT q.id, q.question, questionType FROM ".QUESTIONS_TABLE." q 
+	$sql = "SELECT q.id, q.question, questionType, guestOnly FROM ".QUESTIONS_TABLE." q 
 					INNER JOIN ".QUESTION_TYPE_TABLE." qt ON qt.id = q.questionTypeID 
 					WHERE q.permissionLevel = 'public' 
 					  OR (q.permissionLevel = 'private' AND q.id IN (SELECT questionID FROM ".QUESTION_ATTENDEES_TABLE." WHERE attendeeID = $attendeeID))
@@ -468,6 +468,11 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix) {
   $questions = $wpdb->get_results($sql);
 	if(count($questions) > 0) {
 		foreach($questions as $q) {
+
+			// Skip questions meant for additional guests only
+			if ($q->guestOnly == "Y" && $attendeeType != "guest")
+				continue;
+
 			$oldAnswer = rsvp_revtrievePreviousAnswer($attendeeID, $q->id);
 			
 			$output .= rsvp_BeginningFormField("", "").RSVP_START_PARA.stripslashes($q->question);

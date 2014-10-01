@@ -1228,9 +1228,10 @@ License: GPL
 				$wpdb->update(QUESTIONS_TABLE, 
 											array("question" => trim($_POST['question']), 
 											      "questionTypeID" => trim($_POST['questionTypeID']), 
-														"permissionLevel" => ((trim($_POST['permissionLevel']) == "private") ? "private" : "public")), 
+														"permissionLevel" => ((trim($_POST['permissionLevel']) == "private") ? "private" : "public"), 
+														"guestOnly" => ((trim($_POST['guestOnly']) == "guestOnlyY") ? "Y" : "N")), 
 											array("id" => $_SESSION[EDIT_QUESTION_KEY]), 
-											array("%s", "%d", "%s"), 
+											array("%s", "%d", "%s", "%s"), 
 											array("%d"));
 				rsvp_printQueryDebugInfo();
 				$questionId = $_SESSION[EDIT_QUESTION_KEY];
@@ -1253,8 +1254,9 @@ License: GPL
 			} else {
 				$wpdb->insert(QUESTIONS_TABLE, array("question" => trim($_POST['question']), 
 				                                     "questionTypeID" => trim($_POST['questionTypeID']), 
-																						 "permissionLevel" => ((trim($_POST['permissionLevel']) == "private") ? "private" : "public")),  
-				                               array('%s', '%d', '%s'));
+																						 "permissionLevel" => ((trim($_POST['permissionLevel']) == "private") ? "private" : "public"),  
+																						 "guestOnly" => ((trim($_POST['guestOnly']) == "guestOnlyY") ? "Y" : "N")),  
+				                               array('%s', '%d', '%s', '%s'));
 				rsvp_printQueryDebugInfo();
 				$questionId = $wpdb->insert_id;
 			}
@@ -1293,16 +1295,18 @@ License: GPL
 			$isNew = true;
 			$questionId = 0;
 			$permissionLevel = "public";
+			$guestOnly = "N";
 			$savedAttendees = array();
 			unset($_SESSION[EDIT_QUESTION_KEY]);
 			if(isset($_GET['id']) && is_numeric($_GET['id'])) {
-				$qRs = $wpdb->get_results($wpdb->prepare("SELECT id, question, questionTypeID, permissionLevel FROM ".QUESTIONS_TABLE." WHERE id = %d", $_GET['id']));
+				$qRs = $wpdb->get_results($wpdb->prepare("SELECT id, question, questionTypeID, permissionLevel, guestOnly FROM ".QUESTIONS_TABLE." WHERE id = %d", $_GET['id']));
 				if(count($qRs) > 0) {
 					$isNew = false;
 					$_SESSION[EDIT_QUESTION_KEY] = $qRs[0]->id;
 					$questionId = $qRs[0]->id;
 					$question = stripslashes($qRs[0]->question);
 					$permissionLevel = stripslashes($qRs[0]->permissionLevel);
+					$guestOnly = stripslashes($qRs[0]->guestOnly);
 					$questionTypeId = $qRs[0]->questionTypeID;
 					
 					if($permissionLevel == "private") {
@@ -1394,6 +1398,13 @@ License: GPL
 							<td align="left"><select name="permissionLevel" id="permissionLevel" size="1">
 								<option value="public" <?php echo ($permissionLevel == "public") ? " selected=\"selected\"" : ""; ?>>Public</option>
 								<option value="private" <?php echo ($permissionLevel == "private") ? " selected=\"selected\"" : ""; ?>>Private</option>
+							</select></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="guestOnly">Guest Only?</label></th>
+							<td align="left"><select name="guestOnly" id="guestOnly" size="1">
+								<option value="guestOnlyY" <?php echo ($guestOnly == "Y") ? " selected=\"selected\"" : ""; ?>>Yes</option>
+								<option value="guestOnlyN" <?php echo ($guestOnly == "N") ? " selected=\"selected\"" : ""; ?>>No</option>
 							</select></td>
 						</tr>
             <?php if(!$isNew && ($permissionLevel == "private")): ?>
