@@ -381,12 +381,15 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 										jQuery(\"#additionalRsvpContainer\").append(\"<div class=\\\"rsvpAdditionalAttendee\\\">\" + \r\n
                         \"<div class=\\\"rsvpAdditionalAttendeeQuestions\\\">\" + \r\n
 												\"<div class=\\\"rsvpFormField\\\">\" + \r\n
-                        \"	<label for=\\\"newAttending\" + numAdditional + \"FirstName\\\">".__("Person's first name", 'rsvp-plugin')."&nbsp;</label>\" + \r\n 
+			\"	<label for=\\\"newAttending\" + numAdditional + \"FirstName\\\">".__("Person's first name", 'rsvp-plugin')."&nbsp;</label>\" + \r\n 
 													\"  <input type=\\\"text\\\" name=\\\"newAttending\" + numAdditional + \"FirstName\\\" id=\\\"newAttending\" + numAdditional + \"FirstName\\\" />\" + \r\n
+        													\"<label for=\\\"newAttending\" + numAdditional + \"FirstName\\\" class=\\\"error\\\" style=\\\"display:none;\\\"><font color=\\\"red\\\"><b>&nbsp;Please enter a first name</font></b></label></p>\" + \r\n
+
 										  	\"</div>\" + \r\n
 												\"<div class=\\\"rsvpFormField\\\">\" + \r\n
                         \"	<label for=\\\"newAttending\" + numAdditional + \"LastName\\\">".__("Person's last name", 'rsvp-plugin')."</label>\" + \r\n 
 													\"  <input type=\\\"text\\\" name=\\\"newAttending\" + numAdditional + \"LastName\\\" id=\\\"newAttending\" + numAdditional + \"LastName\\\" />\" + \r\n
+        												\"<label for=\\\"newAttending\" + numAdditional + \"LastName\\\" class=\\\"error\\\" style=\\\"display:none;\\\"><font color=\\\"red\\\"><b>&nbsp;Please enter a last name</font></b></label></p>\" + \r\n
                         \"</div>\" + \r\n";
                         if(get_option(OPTION_RSVP_HIDE_GUEST_EMAIL_FIELD) != "Y") {
   												$form .= "\"<div class=\\\"rsvpFormField\\\">\" + \r\n
