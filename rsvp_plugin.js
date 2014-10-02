@@ -52,11 +52,9 @@ jQuery(document).ready(function(){
 		handleAddRsvpClick();
 		jQuery('[name^="aa"][name*="question"]').each(function(index, element) {
 							jQuery(element).rules("add", "required");
-							alert("Adding: " + element.name);
 						});
 		jQuery('[name^="newAttending"]').each(function(index, element) {
 							jQuery(element).rules("add", "required");
-							alert("Adding: " + element.name);
 						});
 	});
 });
