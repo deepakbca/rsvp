@@ -972,7 +972,7 @@ function rsvp_handlersvp(&$output, &$text) {
     $email = get_option(OPTION_NOTIFY_EMAIL);
     
 		if((get_option(OPTION_NOTIFY_ON_RSVP) == "Y") && ($email != "")) {
-			$sql = "SELECT firstName, lastName, kidsMeal, veggieMeal, note, rsvpStatus, maxAdditionalAttendees FROM ".ATTENDEES_TABLE." WHERE id= ".$attendeeID;
+			$sql = "SELECT firstName, lastName, kidsMeal, veggieMeal, note, rsvpStatus, maxAdditionalAttendees, email FROM ".ATTENDEES_TABLE." WHERE id= ".$attendeeID;
 			$attendee = $wpdb->get_results($sql);
 			if(count($attendee) > 0) {
 				$body = "Hello, \r\n\r\n";
@@ -988,6 +988,7 @@ function rsvp_handlersvp(&$output, &$text) {
 			foreach($aCQR as $aCQRa) {
 				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
+			$body .= "Email address: ".$attendee[0]->email."\r\n";
 
 			$sql = "SELECT firstName, lastName, rsvpStatus, id FROM ".ATTENDEES_TABLE." 
   			 	WHERE id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
