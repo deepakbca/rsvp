@@ -574,7 +574,7 @@ License: GPL
 							</td>
               <td><?php echo htmlspecialchars(stripslashes($attendee->email)); ?></td>
 							<td><?php echo $attendee->rsvpStatus; ?></td>
-							<?php if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDEGUEST_KIDS_MEAL) != "Y") {?>
+							<?php if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {?>
 							<td><?php 
 								if($attendee->rsvpStatus == "NoResponse") {
 									echo "--";
