@@ -493,16 +493,28 @@ License: GPL
 									alt="Sort Descending Attendee Status" title="Sort Descending Attendee Status" border="0"></a>
 						</th>			
             <th scope="col" id="rsvpEmail" class="manage-column column-title">Email</th>
-						<th scope="col" id="rsvpStatus" class="manage-column column-title" style="">RSVP Status<br />
+						<th scope="col" id="rsvpStatus" class="manage-column column-title" style="">Attending Ceremony<br />
 							<a href="admin.php?page=rsvp-top-level&amp;sort=rsvpStatus&amp;sortDirection=asc">
 								<img src="<?php echo plugins_url(); ?>/rsvp/uparrow<?php 
 									echo ((($sort == "rsvpStatus") && ($sortDirection == "asc")) ? "_selected" : ""); ?>.gif" width="11" height="9" 
-									alt="Sort Ascending RSVP Status" title="Sort Ascending RSVP Status" border="0"></a> &nbsp;
+									alt="Sort Ascending Attending Ceremony" title="Sort Ascending Attending Ceremony" border="0"></a> &nbsp;
 							<a href="admin.php?page=rsvp-top-level&amp;sort=rsvpStatus&amp;sortDirection=desc">
 								<img src="<?php echo plugins_url(); ?>/rsvp/downarrow<?php 
 									echo ((($sort == "rsvpStatus") && ($sortDirection == "desc")) ? "_selected" : ""); ?>.gif" width="11" height="9" 
-									alt="Sort Descending RSVP Status" title="Sort Descending RSVP Status" border="0"></a>
+									alt="Sort Descending Attending Ceremony" title="Sort Descending Attending Ceremony" border="0"></a>
 						</th>
+						<?php
+							$qRs = $wpdb->get_results("SELECT id, question FROM ".QUESTIONS_TABLE." ORDER BY sortOrder, id");
+							if(count($qRs) > 0) {
+								foreach($qRs as $q) {
+						?>
+							<th scope="col" class="manage-column -column-title"><?php echo htmlspecialchars(stripslashes($q->question)); ?></th>
+						<?php		
+								}
+							}
+						?>
+						<th scope="col" id="note" class="manage-column column-title" style="">Note</th>
+						<th scope="col" id="passcode" class="manage-column column-title" style="">Passcode</th>
 						<?php if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {?>
 						<th scope="col" id="kidsMeal" class="manage-column column-title" style="">Kids Meal<br />
 								<a href="admin.php?page=rsvp-top-level&amp;sort=kidsMeal&amp;sortDirection=asc">
@@ -538,25 +550,6 @@ License: GPL
 						</th>
 						<?php } ?>
 						<th scope="col" id="customMessage" class="manage-column column-title" style="">Custom Message</th>
-						<th scope="col" id="note" class="manage-column column-title" style="">Note</th>
-						<?php
-						if(rsvp_require_passcode()) {
-						?>
-							<th scope="col" id="passcode" class="manage-column column-title" style="">Passcode</th>
-						<?php
-						}
-						
-						?>
-						<?php
-							$qRs = $wpdb->get_results("SELECT id, question FROM ".QUESTIONS_TABLE." ORDER BY sortOrder, id");
-							if(count($qRs) > 0) {
-								foreach($qRs as $q) {
-						?>
-							<th scope="col" class="manage-column -column-title"><?php echo htmlspecialchars(stripslashes($q->question)); ?></th>
-						<?php		
-								}
-							}
-						?>
 						<th scope="col" id="associatedAttendees" class="manage-column column-title" style="">Associated Attendees</th>
 					</tr>
 				</thead>
@@ -574,6 +567,21 @@ License: GPL
 							</td>
               <td><?php echo htmlspecialchars(stripslashes($attendee->email)); ?></td>
 							<td><?php echo $attendee->rsvpStatus; ?></td>
+							<?php	
+								$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q 
+									LEFT JOIN ".ATTENDEE_ANSWERS." ans ON q.id = ans.questionID AND ans.attendeeID = %d 
+									ORDER BY q.sortOrder, q.id";
+								$aRs = $wpdb->get_results($wpdb->prepare($sql, $attendee->id));
+								if(count($aRs) > 0) {
+									foreach($aRs as $a) {
+							?>
+									<td><?php echo htmlspecialchars(stripslashes($a->answer)); ?></td>
+							<?php
+									}
+								}
+							?>
+							<td><?php echo nl2br(stripslashes(trim($attendee->note))); ?></td>
+							<td><?php echo $attendee->passcode; ?></td>
 							<?php if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {?>
 							<td><?php 
 								if($attendee->rsvpStatus == "NoResponse") {
@@ -601,25 +609,6 @@ License: GPL
 							<td><?php
 								echo nl2br(stripslashes(trim($attendee->personalGreeting)));
 							?></td>
-							<td><?php echo nl2br(stripslashes(trim($attendee->note))); ?></td>
-							<?php
-							if(rsvp_require_passcode()) {
-							?>
-								<td><?php echo $attendee->passcode; ?></td>
-							<?php	
-							}
-								$sql = "SELECT question, answer FROM ".QUESTIONS_TABLE." q 
-									LEFT JOIN ".ATTENDEE_ANSWERS." ans ON q.id = ans.questionID AND ans.attendeeID = %d 
-									ORDER BY q.sortOrder, q.id";
-								$aRs = $wpdb->get_results($wpdb->prepare($sql, $attendee->id));
-								if(count($aRs) > 0) {
-									foreach($aRs as $a) {
-							?>
-									<td><?php echo htmlspecialchars(stripslashes($a->answer)); ?></td>
-							<?php
-									}
-								}
-							?>
 							<td>
 							<?php
 								$sql = "SELECT firstName, lastName FROM ".ATTENDEES_TABLE." 
@@ -666,20 +655,7 @@ License: GPL
 							}
 							$sql .= " ORDER BY ".$orderBy;
 			$attendees = $wpdb->get_results($sql);
-			$csv = "\"Attendee\",\"Email\",\"RSVP Status\",";
-			
-			if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
-				$csv .= "\"Kids Meal\",";
-			}
-			$csv .= "\"Additional Attendee\",";
-			
-			if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
-				$csv .= "\"Vegatarian\",";
-			}
-      if(rsvp_require_passcode()) {
-        $csv .= "\"Passcode\",";
-      }
-			$csv .= "\"Note\",\"Associated Attendees\"";
+			$csv = "\"Attendee\",\"Email\",\"Attending Ceremony\"";
 			
 			$qRs = $wpdb->get_results("SELECT id, question FROM ".QUESTIONS_TABLE." ORDER BY sortOrder, id");
 			if(count($qRs) > 0) {
@@ -687,36 +663,22 @@ License: GPL
 					$csv .= ",\"".stripslashes($q->question)."\"";
 				}
 			}
+
+			$csv .= ",\"Note\",\"Passcode\",\"Additional Attendee\",";
+
+			if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
+				$csv .= "\"Kids Meal\",";
+			}
+			
+			if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
+				$csv .= "\"Vegatarian\",";
+			}
+
+			$csv .= "\"Associated Attendees\"";
 			
 			$csv .= "\r\n";
 			foreach($attendees as $a) {
-				$csv .= "\"".stripslashes($a->firstName." ".$a->lastName)."\",\"".stripslashes($a->email)."\",\"".($a->rsvpStatus)."\",";
-				
-				if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
-					$csv .= "\"".(($a->kidsMeal == "Y") ? "Yes" : "No")."\",";
-				}
-				
-				$csv .= "\"".(($a->additionalAttendee == "Y") ? "Yes" : "No")."\",";
-				
-				if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
-					$csv .= "\"".(($a->veggieMeal == "Y") ? "Yes" : "No")."\",";
-				}
-        
-        if(rsvp_require_passcode()) {
-          $csv .= "\"".(($a->passcode))."\",";
-        }
-				
-				$csv .= "\"".(str_replace("\"", "\"\"", stripslashes($a->note)))."\",\"";
-			
-				$sql = "SELECT firstName, lastName FROM ".ATTENDEES_TABLE." 
-				 	WHERE id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
-						OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d)";
-		
-				$associations = $wpdb->get_results($wpdb->prepare($sql, $a->id, $a->id));
-				foreach($associations as $assc) {
-					$csv .= trim(stripslashes($assc->firstName." ".$assc->lastName))."\r\n";
-				}
-				$csv .= "\"";
+				$csv .= "\"".stripslashes($a->firstName." ".$a->lastName)."\",\"".stripslashes($a->email)."\",\"".($a->rsvpStatus)."\"";
 				
 				$qRs = $wpdb->get_results("SELECT id, question FROM ".QUESTIONS_TABLE." ORDER BY sortOrder, id");
 				if(count($qRs) > 0) {
@@ -729,6 +691,33 @@ License: GPL
 						}
 					}
 				}
+
+				$csv .= ",\"".(str_replace("\"", "\"\"", stripslashes($a->note)))."\",";
+
+          			$csv .= "\"".(($a->passcode))."\",";
+
+			
+				if(get_option(OPTION_HIDE_KIDS_MEAL) != "Y" || get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
+					$csv .= "\"".(($a->kidsMeal == "Y") ? "Yes" : "No")."\",";
+				}
+				
+				if(get_option(OPTION_HIDE_VEGGIE) != "Y") {
+					$csv .= "\"".(($a->veggieMeal == "Y") ? "Yes" : "No")."\",";
+				}
+        
+				$csv .= "\"".(($a->additionalAttendee == "Y") ? "Yes" : "No")."\",\"";
+				
+				$sql = "SELECT firstName, lastName FROM ".ATTENDEES_TABLE." 
+				 	WHERE id IN (SELECT attendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE associatedAttendeeID = %d) 
+						OR id in (SELECT associatedAttendeeID FROM ".ASSOCIATED_ATTENDEES_TABLE." WHERE attendeeID = %d)";
+		
+				$associations = $wpdb->get_results($wpdb->prepare($sql, $a->id, $a->id));
+				foreach($associations as $assc) {
+					$csv .= trim(stripslashes($assc->firstName." ".$assc->lastName))."\r\n";
+				}
+				$csv .= "\"";
+				
+
 				
 				$csv .= "\r\n";
 			}
@@ -1027,7 +1016,7 @@ License: GPL
 					}					
 					?>
 					<tr>
-						<th scope="row"><label for="rsvpStatus">RSVP Status</label></th>
+						<th scope="row"><label for="rsvpStatus">Attending Ceremony</label></th>
 						<td align="left">
 							<select name="rsvpStatus" id="rsvpStatus" size="1">
 								<option value="NoResponse" <?php
