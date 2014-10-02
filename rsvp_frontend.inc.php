@@ -378,6 +378,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 									if(numAdditional > ".$numGuests.") {
 										alert('".__("You have already added the maximum number of permitted guests (".$numGuests."). If you wish to add more, please message us via the \"Contact Us\" link.", 'rsvp-plugin')."');
 									} else {
+										jQuery(\"[name^=\\\"additionalRSVP\\\"][name$=\\\"RemoveButton\\\"]\").attr('disabled','disabled'); // disable previous buttons
 										jQuery(\"#additionalRsvpContainer\").append(\"<div class=\\\"rsvpAdditionalAttendee\\\">\" + \r\n
                         \"<div class=\\\"rsvpAdditionalAttendeeQuestions\\\">\" + \r\n
 												\"<div class=\\\"rsvpFormField\\\">\" + \r\n
@@ -427,7 +428,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
                           \"</div>\" +
 													\"</div>\" + \r\n";
 												}
-                          $form .= "\"<p><button onclick=\\\"removeAdditionalRSVP(this);\\\">Remove Guest</button></p>\" +
+                          $form .= "\"<p><button name=\\\"additionalRSVP\" + numAdditional + \"RemoveButton\\\" onclick=\\\"removeAdditionalRSVP(this);\\\">Remove Guest</button></p>\" +
 											\"</div>\");
 										jQuery(\"#additionalRsvp\").val(numAdditional);
 									}
@@ -438,6 +439,7 @@ function rsvp_frontend_main_form($attendeeID, $rsvpStep = "handleRsvp") {
 									numAdditional--;
                   jQuery(rsvp).parent().parent().remove();
                   jQuery(\"#additionalRsvp\").val(numAdditional);
+                  jQuery(\"[name=\\\"additionalRSVP\" + numAdditional + \"RemoveButton\\\"]\").removeAttr('disabled'); // en-enable last button
                 }
 							</script>\r\n";
 	}
