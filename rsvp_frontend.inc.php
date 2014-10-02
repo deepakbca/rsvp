@@ -1066,7 +1066,9 @@ function rsvp_handlersvp(&$output, &$text) {
 			foreach($aCQR as $aCQRa) {
 				if ($aCQRa->questionID == 1 && $aCQRa->answer == "Yes")
 					$attendingReception = true;
-				$rsvpNotedAs .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+
+				if (!empty($aCQRa->answer))
+					$rsvpNotedAs .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
 
 			$sql = "SELECT firstName, lastName, rsvpStatus, id FROM ".ATTENDEES_TABLE." 
@@ -1105,7 +1107,8 @@ function rsvp_handlersvp(&$output, &$text) {
 			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
 
 			foreach($aCQR as $aCQRa) {
-				$rsvpNotedAs .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+				if (!empty($aCQRa->answer))
+					$rsvpNotedAs .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
 
 			if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
