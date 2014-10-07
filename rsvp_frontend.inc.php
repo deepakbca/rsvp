@@ -478,7 +478,9 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix, $attendeeType) {
 			if ($q->guestOnly == "Y" && $attendeeType != "guest")
 				continue;
 
-			$oldAnswer = rsvp_revtrievePreviousAnswer($attendeeID, $q->id);
+			if ($prefix != "" && !(strpos($prefix, "aa") === 0)) {
+				$oldAnswer = rsvp_revtrievePreviousAnswer($attendeeID, $q->id);
+			}
 			
 			$output .= rsvp_BeginningFormField("", "").RSVP_START_PARA.stripslashes($q->question);
 				
