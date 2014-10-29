@@ -465,6 +465,10 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix, $attendeeType) {
 	global $wpdb, $rsvp_saved_form_vars;
 	$output = "<div class=\"rsvpCustomQuestions\">";
 	
+	$attendee = $wpdb->get_row($wpdb->prepare("SELECT firstName, lastName FROM ".ATTENDEES_TABLE." WHERE id = %d", $attendeeID));
+	$firstName = $attendee->firstName;
+	$lastName = $attendee->lastName;
+
 	$sql = "SELECT q.id, q.question, questionType, guestOnly FROM ".QUESTIONS_TABLE." q 
 					INNER JOIN ".QUESTION_TYPE_TABLE." qt ON qt.id = q.questionTypeID 
 					WHERE q.permissionLevel = 'public' 
@@ -481,8 +485,10 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix, $attendeeType) {
 			if ($prefix != "" && !(strpos($prefix, "aa") === 0)) {
 				$oldAnswer = rsvp_revtrievePreviousAnswer($attendeeID, $q->id);
 			}
-			
-			$output .= rsvp_BeginningFormField("", "").RSVP_START_PARA.stripslashes($q->question);
+
+			$question = str_replace("%FIRSTNAME%", $firstName, $q->question);
+			$question = str_replace("%LASTNAME%", $lastName, $question);
+			$output .= rsvp_BeginningFormField("", "").RSVP_START_PARA.stripslashes($question);
 				
 				if($q->questionType == QT_MULTI) {
 					$output .= RSVP_END_PARA;
