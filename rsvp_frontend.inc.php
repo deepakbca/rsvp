@@ -1034,7 +1034,9 @@ function rsvp_handlersvp(&$output, &$text) {
 			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
 
 			foreach($aCQR as $aCQRa) {
-				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+				$question = str_replace("%FIRSTNAME%", $a->firstName, $aCQRa->question);
+				$question = str_replace("%LASTNAME%", $a->lastName, $question);
+				$body .= stripslashes($question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
 
 			if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
@@ -1118,8 +1120,11 @@ function rsvp_handlersvp(&$output, &$text) {
 			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $a->id)); // custom question responses
 
 			foreach($aCQR as $aCQRa) {
-				if (!empty($aCQRa->answer))
-					$rsvpNotedAs .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+				if (!empty($aCQRa->answer)) {
+					$question = str_replace("%FIRSTNAME%", $a->firstName, $aCQRa->question);
+					$question = str_replace("%LASTNAME%", $a->lastName, $question);
+					$rsvpNotedAs .= stripslashes($question).": ".stripslashes($aCQRa->answer)."\r\n";
+				}
 			}
 
 			if(get_option(OPTION_HIDE_GUEST_KIDS_MEAL) != "Y") {
