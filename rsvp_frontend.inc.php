@@ -484,10 +484,12 @@ function rsvp_buildAdditionalQuestions($attendeeID, $prefix, $attendeeType) {
 
 			if ($prefix != "" && !(strpos($prefix, "aa") === 0)) {
 				$oldAnswer = rsvp_revtrievePreviousAnswer($attendeeID, $q->id);
+				$question = str_replace("%FIRSTNAME%", $firstName, $q->question);
+				$question = str_replace("%LASTNAME%", $lastName, $question);
+			} else {
+				$question = str_replace("%FIRSTNAME%", "New", $q->question);
+				$question = str_replace("%LASTNAME%", "guest", $question);
 			}
-
-			$question = str_replace("%FIRSTNAME%", $firstName, $q->question);
-			$question = str_replace("%LASTNAME%", $lastName, $question);
 			$output .= rsvp_BeginningFormField("", "").RSVP_START_PARA.stripslashes($question);
 				
 				if($q->questionType == QT_MULTI) {
@@ -994,7 +996,9 @@ function rsvp_handlersvp(&$output, &$text) {
   				ORDER BY q.sortOrder, q.id";
 			$aCQR = $wpdb->get_results($wpdb->prepare($sql, $attendeeID));
 			foreach($aCQR as $aCQRa) {
-				$body .= stripslashes($aCQRa->question).": ".stripslashes($aCQRa->answer)."\r\n";
+				$question = str_replace("%FIRSTNAME%", $attendee[0]->firstName, $aCQRa->question);
+				$question = str_replace("%LASTNAME%", $attendee[0]->lastName, $question);
+				$body .= stripslashes($question).": ".stripslashes($aCQRa->answer)."\r\n";
 			}
 			$body .= "Email address: ".$attendee[0]->email."\r\n";
 
